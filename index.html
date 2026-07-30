@@ -250,47 +250,8 @@
   </div>
 
   <!-- ── RESULT ── -->
-  <div id="s-result" class="qs" style="display:none; flex-direction:column; align-items:flex-start; justify-content:flex-start; min-height:100vh; padding:4rem 1.5rem 5rem; overflow-y:auto;">
-    <div class="w-full max-w-[420px] mx-auto">
-
-      <!-- Greeting -->
-      <p id="r-greeting" class="text-muted text-sm font-semibold mb-4"></p>
-
-      <!-- Badge + Headline -->
-      <span id="r-badge"
-        class="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full bg-accent-light text-accent mb-4">
-        Diagnóstico
-      </span>
-      <h2 id="r-headline" class="text-2xl font-extrabold text-charcoal leading-snug mb-7"></h2>
-
-      <!-- QUICK WIN -->
-      <div id="r-qw" style="background:#F0FDF4; border:1.5px solid #BBF7D0; border-radius:16px; padding:20px; margin-bottom:28px;">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-          <span style="font-size:18px;">⚡</span>
-          <p style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#15803D; margin:0;">O que você pode fazer hoje</p>
-        </div>
-        <div id="r-qw-body"></div>
-      </div>
-
-      <!-- O que encontramos -->
-      <p class="text-xs font-bold uppercase tracking-widest text-muted mb-3">O que identificamos</p>
-      <div id="r-bullets" class="space-y-3 mb-6"></div>
-
-      <!-- Implication -->
-      <div style="background:#EFF6FF; border-radius:16px; padding:16px 20px; margin-bottom:32px;">
-        <p id="r-impl" class="text-charcoal text-base font-semibold leading-relaxed" style="margin:0;"></p>
-      </div>
-
-      <!-- CTA -->
-      <div class="rcta-wrap">
-        <button id="r-cta" onclick="goToVSL()"
-          class="cta w-full bg-accent text-white font-bold py-4 px-6 rounded-2xl text-lg mb-4">
-          Ver como resolver isso →
-        </button>
-        <p id="r-sub" class="text-muted text-sm text-center leading-relaxed"></p>
-      </div>
-
-    </div>
+  <div id="s-result" class="qs" style="display:none; flex-direction:column; align-items:flex-start; justify-content:flex-start; min-height:100vh; padding:4rem 1.5rem 6rem; overflow-y:auto; background:#FAFAF8;">
+    <div id="r-body" class="w-full max-w-[420px] mx-auto"></div>
   </div>
 
   <script>
@@ -316,125 +277,134 @@
       opts:['Agora — quero previsibilidade de leads e visitas nos próximos 30 dias','Em breve — estou pesquisando opções para os próximos meses','Ainda estou entendendo o problema — preciso de mais informações'] }
   ];
 
+  // ── RECLAME AQUI QUOTES (validação — comuns a todos os baldes) ───────────
+  const RA_QUOTES = [
+    { text: '"Leads totalmente desqualificados, maioria curiosos com renda muito baixa. Nenhuma venda convertida, dinheiro preso no Facebook."', attr: 'Dono de imobiliária · Reclame Aqui' },
+    { text: '"Fidelizam o cliente e entregam 0 de qualidade de leads. Custo por lead inviável. Obtive melhores resultados fazendo marketing sozinho."', attr: 'Dono de imobiliária · Reclame Aqui' },
+    { text: '"Promessas mirabolantes, poucos leads entregues, todos desqualificados. Jogam a culpa no cliente."', attr: 'Dono de imobiliária · Reclame Aqui' }
+  ];
+
   const RESULTS = {
     A:{
       badge:'Gargalo identificado',
       headline:'Você está pagando pelo lead certo para ele morrer no lugar errado.',
-      qw:{
-        chart:{
-          label:'Leads que chegam ao corretor com perfil real de compra',
-          bars:[
-            { label:'Hoje — sem filtro',    pct:20, color:'#DC2626', bg:'#FEE2E2' },
-            { label:'Com filtro pré-corretor', pct:75, color:'#15803D', bg:'#DCFCE7' }
-          ]
-        },
-        action:'Antes de repassar qualquer lead, envie esta mensagem: <em>"[Nome], você tem financiamento aprovado ou reserva disponível para iniciar nos próximos 60 dias?"</em> — Quem diz sim vai pro corretor. Quem diz não vai pra nutrição. Simples assim.',
-        teaser:'O sistema completo automatiza esse filtro antes do lead chegar no WhatsApp do corretor — sem depender de você ou do corretor lembrarem de perguntar.'
-      },
-      bullets:[
-        {g:true, i:'✓', t:'Você já tem tráfego rodando'},
-        {g:true, i:'✓', t:'Leads chegam até o corretor'},
-        {w:true, i:'⚠', t:'A triagem ainda acontece no WhatsApp — o lugar mais caro e ineficiente para qualificar alguém'}
-      ],
       impl:'Isso explica por que quanto mais você investe, mais seu corretor reclama — e menos visitas acontecem.',
-      sub:'No vídeo a seguir: como estruturar esse filtro de forma que o corretor só fale com quem já está pronto para visitar.'
+      chart:{
+        label:'Leads com perfil real que chegam ao corretor',
+        bars:[
+          { label:'Hoje — sem filtro pré-corretor', pct:20, color:'#DC2626', bg:'#FEE2E2', tag:'~20%' },
+          { label:'Com filtro antes do WhatsApp',   pct:75, color:'#15803D', bg:'#DCFCE7', tag:'~75%' }
+        ]
+      },
+      recipe:[
+        { type:'label',   text:'Faça isso hoje — antes de passar o próximo lead pro corretor:' },
+        { type:'message', text:'"[Nome do lead], você tem financiamento aprovado ou reserva disponível para iniciar a compra nos próximos 60 dias?"' },
+        { type:'routing', items:[
+          { ok:true,  text:'SIM → passa pro corretor agora' },
+          { ok:false, text:'NÃO → entra em nutrição, não no WhatsApp do corretor' }
+        ]},
+        { type:'result', text:'Isso sozinho elimina até 60% dos leads que tomam o tempo do seu corretor sem virar visita.' }
+      ],
+      cta:'Ver como imobiliárias com o seu perfil resolveram isso →',
+      sub:'No vídeo: o sistema que coloca o filtro antes do corretor — e como imobiliárias com o mesmo tráfego que o seu fecham 3× mais visitas.'
     },
     B:{
       badge:'Gargalo identificado',
       headline:'Você investe em tráfego mas não tem como saber se está funcionando.',
-      qw:{
-        chart:{
-          label:'Onde os leads somem na sua operação hoje',
-          funnel:[
-            { label:'Clicam no anúncio', pct:100, color:'#0369A1' },
-            { label:'Entram em contato',  pct:40,  color:'#0284C7' },
-            { label:'São atendidos',      pct:22,  color:'#F59E0B' },
-            { label:'Chegam à visita',    pct:6,   color:'#DC2626' }
-          ]
-        },
-        action:'Crie uma planilha com 4 colunas: <em>Data · Canal · Atendido (S/N) · Resultado.</em> Peça pro corretor preencher por 2 semanas. Você vai ver exatamente onde os leads estão sumindo — sem precisar de nenhuma ferramenta.',
-        teaser:'O sistema completo rastreia cada lead do clique ao contrato automaticamente — e te mostra em qual etapa cada um parou e por quê.'
+      impl:'Impossível corrigir o que não se mede. O buraco existe — você só não consegue ver onde.',
+      chart:{
+        label:'O que acontece com 100 leads na sua operação hoje',
+        funnel:[
+          { label:'Clicam no anúncio',   pct:100, color:'#0369A1' },
+          { label:'Entram em contato',   pct:40,  color:'#0284C7' },
+          { label:'São atendidos',       pct:22,  color:'#F59E0B' },
+          { label:'Chegam à visita',     pct:6,   color:'#DC2626' }
+        ]
       },
-      bullets:[
-        {g:true, i:'✓', t:'Você investe em geração de leads'},
-        {n:true, i:'?', t:'Mas o que acontece depois do clique é uma caixa-preta'},
-        {w:true, i:'⚠', t:'Sem rastreamento do funil, o buraco fica invisível — e você continua pagando por ele'}
+      recipe:[
+        { type:'label', text:'Faça isso hoje — leva 10 minutos e vai revelar o buraco:' },
+        { type:'steps', items:[
+          'Crie uma planilha com 4 colunas: <strong>Data · Canal · Atendido (S/N) · Resultado</strong>',
+          'Peça pro corretor preencher por 14 dias',
+          'Você vai ver exatamente em qual etapa os leads estão sumindo'
+        ]},
+        { type:'result', text:'Com esse mapa em mãos, você para de investir às cegas e começa a corrigir a etapa certa.' }
       ],
-      impl:'Impossível corrigir o que não se mede. O diagnóstico começa em mapear onde os leads estão sumindo.',
-      sub:'No vídeo a seguir: como imobiliárias que faturam de forma previsível rastreiam cada lead — do clique à visita.'
+      cta:'Ver como imobiliárias com o seu perfil resolveram isso →',
+      sub:'No vídeo: como rastrear cada lead do clique ao contrato — e o que fazer quando você descobre onde está o buraco.'
     },
     C:{
       badge:'Gargalo identificado',
       headline:'Seus leads chegam, mas somem antes do corretor responder.',
-      qw:{
-        chart:{
-          label:'Taxa de conversão de lead → visita por tempo de resposta',
-          bars:[
-            { label:'Resposta em até 5 min',  pct:68, color:'#15803D', bg:'#DCFCE7' },
-            { label:'Resposta em 5–30 min',   pct:32, color:'#F59E0B', bg:'#FEF9C3' },
-            { label:'Resposta após 1 hora',   pct:9,  color:'#DC2626', bg:'#FEE2E2' }
-          ]
-        },
-        action:'Configure uma mensagem automática no WhatsApp Business: <em>"Oi [nome]! Recebemos sua mensagem. Para te atender melhor: você procura imóvel para morar ou investir? Qual faixa de valor?"</em> — Isso mantém o lead ativo e filtra enquanto o corretor não respondeu.',
-        teaser:'O sistema completo configura um fluxo de resposta nos primeiros 5 minutos — integrado com o time comercial para que nenhum lead fique sem resposta.'
-      },
-      bullets:[
-        {g:true, i:'✓', t:'Os leads chegam com algum perfil'},
-        {g:true, i:'✓', t:'Seu corretor tenta atender'},
-        {w:true, i:'⚠', t:'A demora entre o lead chegar e o primeiro contato custa a venda — e nenhum processo controla isso hoje'}
-      ],
       impl:'No mercado imobiliário, o lead raramente espera. Quem responde primeiro tem vantagem real — não quem responde melhor.',
-      sub:'No vídeo a seguir: como estruturar um processo de resposta que garante contato nos primeiros 5 minutos sem depender do corretor.'
+      chart:{
+        label:'Probabilidade de conversão por tempo de resposta',
+        bars:[
+          { label:'Resposta em até 5 min',  pct:68, color:'#15803D', bg:'#DCFCE7', tag:'68%' },
+          { label:'Resposta em 5 a 30 min', pct:32, color:'#F59E0B', bg:'#FEF9C3', tag:'32%' },
+          { label:'Resposta após 1 hora',   pct:9,  color:'#DC2626', bg:'#FEE2E2', tag:'9%'  }
+        ]
+      },
+      recipe:[
+        { type:'label', text:'Configure isso hoje no WhatsApp Business — leva 5 minutos:' },
+        { type:'message', text:'"Oi [nome]! Recebemos sua mensagem. Para te atender melhor: você procura imóvel para morar ou investir? E qual faixa de valor?"' },
+        { type:'routing', items:[
+          { ok:true,  text:'Lead responde → corretor já recebe perfil qualificado' },
+          { ok:false, text:'Lead não responde em 24h → vai para nutrição automática' }
+        ]},
+        { type:'result', text:'Mantém o lead ativo nos primeiros minutos — sem depender do corretor lembrar de responder.' }
+      ],
+      cta:'Ver como imobiliárias com o seu perfil resolveram isso →',
+      sub:'No vídeo: como estruturar um processo de primeiro contato que garante resposta em até 5 minutos — sem contratar mais ninguém.'
     },
     D:{
       badge:'Gargalo identificado',
       headline:'Você depende de fontes de lead que não estão sob o seu controle.',
-      qw:{
-        chart:{
-          label:'Custo médio por lead por canal',
-          bars:[
-            { label:'Portais (Zap, OLX...)',    pct:90, color:'#DC2626', bg:'#FEE2E2', tag:'~R$85/lead' },
-            { label:'Indicação',                pct:10, color:'#F59E0B', bg:'#FEF9C3', tag:'R$0 mas não escala' },
-            { label:'Meta Ads (canal próprio)', pct:18, color:'#15803D', bg:'#DCFCE7', tag:'~R$18/lead' }
-          ]
-        },
-        action:'Crie 1 anúncio no Meta com este ângulo: <em>"Para quem está procurando [tipo de imóvel] em [bairro]"</em>. Segmentação geográfica precisa. Orçamento R$30/dia por 7 dias. Você vai gerar leads que custam menos que 1 lead de portal — e que você controla.',
-        teaser:'O sistema completo estrutura um canal próprio no Meta com segmentação por perfil de comprador — sem depender de portal nem de indicação.'
-      },
-      bullets:[
-        {g:true, i:'✓', t:'Você tem uma operação rodando'},
-        {n:true, i:'?', t:'Mas portal e indicação não escalam — e ficam mais caros a cada ano'},
-        {w:true, i:'⚠', t:'Sem um canal próprio de aquisição, você está à mercê de plataformas que aumentam o preço quando querem'}
-      ],
       impl:'Previsibilidade comercial começa em ter controle sobre de onde vêm os leads — não em depender de quem os vende.',
-      sub:'No vídeo a seguir: como construir um canal de leads que você controla e que escala sem aumentar o custo por resultado.'
+      chart:{
+        label:'Custo médio por lead por canal',
+        bars:[
+          { label:'Portais (Zap, OLX...)',     pct:90, color:'#DC2626', bg:'#FEE2E2', tag:'~R$85/lead' },
+          { label:'Indicação',                 pct:15, color:'#F59E0B', bg:'#FEF9C3', tag:'R$0 · não escala' },
+          { label:'Meta Ads (canal próprio)',   pct:18, color:'#15803D', bg:'#DCFCE7', tag:'~R$18/lead' }
+        ]
+      },
+      recipe:[
+        { type:'label', text:'Faça isso hoje — 1 anúncio no Meta, R$30/dia por 7 dias:' },
+        { type:'steps', items:[
+          'Segmentação: moradores do bairro onde seus imóveis ficam, 28–55 anos',
+          'Ângulo: <strong>"Para quem está procurando [tipo de imóvel] em [bairro] sem depender de portal"</strong>',
+          'CTA: WhatsApp da imobiliária'
+        ]},
+        { type:'result', text:'Você vai gerar os primeiros leads próprios por menos do que custa 1 lead de portal — e que você controla.' }
+      ],
+      cta:'Ver como imobiliárias com o seu perfil resolveram isso →',
+      sub:'No vídeo: como construir um canal de leads próprio que escala sem depender de portal ou indicação.'
     },
     E:{
       badge:'Diagnóstico pronto',
-      headline:'Há espaço claro para crescimento na sua operação.',
-      qw:{
-        chart:null,
-        action:'Antes de escalar o investimento em tráfego, mapeie 3 coisas: <em>1) De onde vêm seus melhores clientes hoje. 2) Qual etapa do atendimento tem mais abandono. 3) Qual canal tem melhor retorno.</em> Esse mapeamento simples evita investir mais no que já está com gargalo.',
-        teaser:'O sistema completo estrutura esses três pontos antes de acelerar — para crescer sem aumentar o caos.'
-      },
-      bullets:[
-        {g:true, i:'✓', t:'Sua operação está funcionando'},
-        {g:true, i:'✓', t:'Você já identificou os gargalos certos'},
-        {a:true, i:'→', t:'O próximo passo é estruturar antes de acelerar'}
-      ],
+      headline:'Há espaço claro para crescimento — mas escalar antes de estruturar vai gerar mais caos.',
       impl:'Crescer sem estrutura gera mais caos, não mais resultado. O momento de preparar o terreno é agora.',
-      sub:'Vamos te enviar por WhatsApp um conteúdo sobre como estruturar a aquisição antes de escalar.'
+      chart:null,
+      recipe:[
+        { type:'label', text:'Antes de aumentar o investimento, mapeie isso:' },
+        { type:'steps', items:[
+          '<strong>De onde vêm seus melhores clientes hoje</strong> — canal + perfil',
+          '<strong>Em qual etapa o atendimento perde mais leads</strong> — WhatsApp, visita ou proposta',
+          '<strong>Qual canal tem melhor custo por resultado</strong> — não por clique'
+        ]},
+        { type:'result', text:'Esse mapeamento evita investir mais no que já está com gargalo.' }
+      ],
+      cta:'Ver como estruturar antes de escalar →',
+      sub:'No vídeo: o que imobiliárias com o seu faturamento fazem de diferente antes de dobrar o investimento em tráfego.'
     },
     X:{
       badge:'Obrigado por responder',
       headline:'Seu diagnóstico está salvo.',
-      qw:{
-        chart:null,
-        action:'Quando você estiver pronto para estruturar a aquisição de clientes da sua imobiliária, estaremos aqui.',
-        teaser:''
-      },
-      bullets:[{a:true, i:'→', t:'Vamos te enviar conteúdo relevante para o momento atual da sua operação'}],
       impl:'Quando o momento for certo, estaremos aqui para te ajudar.',
+      chart:null,
+      recipe:[{ type:'label', text:'Vamos te enviar conteúdo relevante para o momento atual da sua operação.' }],
+      cta:'Entendido',
       sub:''
     }
   };
@@ -556,93 +526,157 @@
     return 'A';
   }
 
-  // ── CHART RENDERER ────────────────────────────────────────────────────────
+  // ── CHART ─────────────────────────────────────────────────────────────────
   function renderChart(chart) {
     if (!chart) return '';
-
-    // Funnel chart (balde B)
-    if (chart.funnel) {
-      return `
-        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6B7280;margin-bottom:12px;">${chart.label}</p>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
-          ${chart.funnel.map(f=>`
-            <div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                <span style="font-size:12px;color:#6B7280;">${f.label}</span>
-                <span style="font-size:12px;font-weight:700;color:${f.color};">${f.pct}%</span>
-              </div>
-              <div style="background:#F1F5F9;border-radius:4px;height:8px;overflow:hidden;">
-                <div class="bar-fill" data-pct="${f.pct}" style="background:${f.color};width:0%;height:100%;border-radius:4px;transition:width 0.9s ease;"></div>
-              </div>
-            </div>`).join('')}
-        </div>`;
-    }
-
-    // Bar chart (baldes A, C, D)
-    return `
-      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6B7280;margin-bottom:12px;">${chart.label}</p>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-        ${chart.bars.map(b=>`
-          <div>
+    const rows = chart.funnel
+      ? chart.funnel.map(f=>`
+          <div style="margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+              <span style="font-size:12px;color:#374151;">${f.label}</span>
+              <span style="font-size:12px;font-weight:700;color:${f.color};">${f.pct}%</span>
+            </div>
+            <div style="background:#F1F5F9;border-radius:4px;height:8px;overflow:hidden;">
+              <div class="bar-fill" data-pct="${f.pct}" style="background:${f.color};width:0%;height:100%;border-radius:4px;transition:width 1s ease;"></div>
+            </div>
+          </div>`).join('')
+      : chart.bars.map(b=>`
+          <div style="margin-bottom:8px;">
             <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
-              <span style="font-size:12px;color:#374151;">${b.label}</span>
-              <span style="font-size:12px;font-weight:700;color:${b.color};">${b.tag||b.pct+'%'}</span>
+              <span style="font-size:12px;color:#374151;flex:1;padding-right:8px;">${b.label}</span>
+              <span style="font-size:12px;font-weight:700;color:${b.color};white-space:nowrap;">${b.tag||b.pct+'%'}</span>
             </div>
-            <div style="background:${b.bg};border-radius:4px;height:10px;overflow:hidden;">
-              <div class="bar-fill" data-pct="${b.pct}" style="background:${b.color};width:0%;height:100%;border-radius:4px;transition:width 0.9s ease;"></div>
+            <div style="background:${b.bg||'#F1F5F9'};border-radius:4px;height:10px;overflow:hidden;">
+              <div class="bar-fill" data-pct="${b.pct}" style="background:${b.color};width:0%;height:100%;border-radius:4px;transition:width 1s ease;"></div>
             </div>
-          </div>`).join('')}
+          </div>`).join('');
+    return `
+      <div style="background:#fff;border-radius:14px;padding:16px 18px;margin-bottom:16px;border:1px solid #E5E7EB;">
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6B7280;margin-bottom:14px;">${chart.label}</p>
+        ${rows}
       </div>`;
   }
 
   function animateBars() {
-    document.querySelectorAll('.bar-fill').forEach(bar => {
-      const pct = bar.dataset.pct;
-      requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.width = pct + '%'; }));
+    document.querySelectorAll('.bar-fill').forEach(b => {
+      const pct = b.dataset.pct;
+      requestAnimationFrame(() => requestAnimationFrame(() => { b.style.width = pct + '%'; }));
     });
+  }
+
+  // ── RECIPE ────────────────────────────────────────────────────────────────
+  function renderRecipe(steps) {
+    return steps.map(s => {
+      if (s.type === 'label') return `
+        <p style="font-size:13px;font-weight:700;color:#14532D;margin-bottom:12px;">${s.text}</p>`;
+
+      if (s.type === 'message') return `
+        <div style="background:#fff;border:1.5px dashed #86EFAC;border-radius:12px;padding:14px 16px;margin-bottom:12px;">
+          <p style="font-size:12px;font-weight:600;color:#6B7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Mensagem — copie e cole</p>
+          <p style="font-size:14px;color:#1A1A1A;line-height:1.65;font-style:italic;margin:0;">${s.text}</p>
+        </div>`;
+
+      if (s.type === 'steps') return `
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+          ${s.items.map((it,i)=>`
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#0369A1;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px;">${i+1}</span>
+              <p style="font-size:13px;color:#1A1A1A;line-height:1.55;margin:0;">${it}</p>
+            </div>`).join('')}
+        </div>`;
+
+      if (s.type === 'routing') return `
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+          ${s.items.map(r=>`
+            <div style="display:flex;align-items:center;gap:8px;background:${r.ok?'#F0FDF4':'#F9FAFB'};border-radius:8px;padding:10px 12px;">
+              <span style="font-size:14px;font-weight:700;color:${r.ok?'#15803D':'#6B7280'};">${r.ok?'✓':'→'}</span>
+              <p style="font-size:13px;color:#1A1A1A;margin:0;font-weight:500;">${r.text}</p>
+            </div>`).join('')}
+        </div>`;
+
+      if (s.type === 'result') return `
+        <div style="border-top:1px solid #86EFAC;padding-top:12px;margin-top:4px;">
+          <p style="font-size:13px;font-weight:700;color:#15803D;line-height:1.55;margin:0;">📈 ${s.text}</p>
+        </div>`;
+
+      return '';
+    }).join('');
   }
 
   // ── RESULT ────────────────────────────────────────────────────────────────
   function showResult() {
-    const b = calcBalde(); ans.balde = b;
-    const d = RESULTS[b];
-    const firstName = (ans.name || '').split(' ')[0];
+    const b  = calcBalde(); ans.balde = b;
+    const d  = RESULTS[b];
+    const nm = (ans.name||'').split(' ')[0];
 
-    // Personalized greeting
-    document.getElementById('r-greeting').textContent =
-      firstName ? `${firstName}, seu diagnóstico está pronto.` : 'Seu diagnóstico está pronto.';
+    document.getElementById('r-body').innerHTML = `
 
-    document.getElementById('r-badge').textContent    = d.badge;
-    document.getElementById('r-headline').textContent = d.headline;
-    document.getElementById('r-impl').textContent     = d.impl;
-    document.getElementById('r-sub').textContent      = d.sub;
-    document.getElementById('r-cta').textContent      =
-      b==='E' ? 'Receber conteúdo gratuito →' :
-      b==='X' ? 'Entendido' :
-      'Ver como imobiliárias resolvem isso →';
+      <!-- 1. GREETING -->
+      <p style="font-size:13px;font-weight:600;color:#6B7280;margin-bottom:20px;">
+        ${nm ? `${nm}, seu diagnóstico está pronto.` : 'Seu diagnóstico está pronto.'}
+      </p>
 
-    // Quick win
-    const qw = d.qw;
-    document.getElementById('r-qw-body').innerHTML = `
-      ${renderChart(qw.chart)}
-      <p style="font-size:14px;color:#1A1A1A;line-height:1.6;margin-bottom:${qw.teaser?'12px':'0'};">${qw.action}</p>
-      ${qw.teaser ? `
-        <div style="border-top:1px solid #BBF7D0;padding-top:12px;margin-top:4px;">
-          <p style="font-size:12px;color:#15803D;line-height:1.5;font-weight:500;margin:0;">
-            <strong>O sistema completo vai além:</strong> ${qw.teaser.replace('O sistema completo automatiza esse filtro','automatiza isso').replace('O sistema completo ','').replace('O sistema completo r','R')}
-          </p>
-        </div>` : ''}`;
+      <!-- 2. VALIDAÇÃO — RA quotes -->
+      ${b!=='X' ? `
+      <div style="background:#FFF7ED;border-radius:16px;padding:20px;margin-bottom:24px;">
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#C2410C;margin-bottom:6px;">Você não está sozinho nisso</p>
+        <p style="font-size:13px;color:#374151;line-height:1.55;margin-bottom:16px;">Antes do seu diagnóstico, veja o que outros donos de imobiliária relataram:</p>
+        ${RA_QUOTES.map(q=>`
+          <div style="background:#fff;border-left:3px solid #F97316;border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+              <img src="https://www.google.com/s2/favicons?domain=reclameaqui.com.br&sz=64"
+                style="width:14px;height:14px;border-radius:2px;" onerror="this.style.display='none'">
+              <span style="font-size:10px;font-weight:700;color:#EA580C;text-transform:uppercase;letter-spacing:0.05em;">Reclame Aqui</span>
+              <span style="font-size:12px;color:#DC2626;">★<span style="color:#D1D5DB;">★★★★</span></span>
+            </div>
+            <p style="font-size:13px;font-style:italic;color:#1F2937;line-height:1.6;margin:0 0 8px;">${q.text}</p>
+            <p style="font-size:11px;color:#9CA3AF;margin:0;">${q.attr}</p>
+          </div>`).join('')}
+        <p style="font-size:12px;color:#9CA3AF;text-align:center;margin:8px 0 0;">O padrão se repete. Não foi você — foi o processo.</p>
+      </div>` : ''}
 
-    // Bullets
-    const bColor = bl => bl.g?'#059669':bl.w?'#D97706':bl.a?'#0369A1':'#6B7280';
-    document.getElementById('r-bullets').innerHTML = d.bullets.map(bl=>`
-      <div class="rb" style="display:flex;align-items:flex-start;gap:12px;background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06);border:1px solid #E5E7EB;">
-        <span style="color:${bColor(bl)};font-weight:700;font-size:18px;line-height:1;flex-shrink:0;margin-top:1px;">${bl.i}</span>
-        <p style="color:#1A1A1A;font-size:15px;line-height:1.45;font-weight:500;margin:0;">${bl.t}</p>
-      </div>`).join('');
+      <!-- 3. VILLAIN REFRAME -->
+      ${b!=='X' ? `
+      <div style="background:#1A1A1A;border-radius:16px;padding:22px;margin-bottom:24px;">
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#6B7280;margin-bottom:10px;">A causa real</p>
+        <p style="font-size:20px;font-weight:800;color:#FFFFFF;line-height:1.3;margin-bottom:10px;">O problema não foi você — e não foi o tráfego.</p>
+        <p style="font-size:14px;color:#D1D5DB;line-height:1.65;margin:0;">Sem um filtro antes do corretor, qualquer agência, portal ou investimento entrega o mesmo resultado. O lead chega ao lugar errado, na hora errada, sem qualificação — e o corretor reclama, e o dono culpa o tráfego.</p>
+      </div>` : ''}
+
+      <!-- 4. DIAGNÓSTICO PERSONALIZADO -->
+      <span style="display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;background:#EFF6FF;color:#0369A1;padding:6px 12px;border-radius:99px;margin-bottom:12px;">${d.badge}</span>
+      <h2 style="font-size:22px;font-weight:800;color:#1A1A1A;line-height:1.3;margin-bottom:20px;">${d.headline}</h2>
+
+      <!-- 5. CHART -->
+      ${renderChart(d.chart)}
+
+      <!-- 6. IMPLICAÇÃO -->
+      <div style="background:#EFF6FF;border-radius:14px;padding:16px 18px;margin-bottom:24px;">
+        <p style="font-size:14px;font-weight:600;color:#1A1A1A;line-height:1.65;margin:0;">${d.impl}</p>
+      </div>
+
+      <!-- 7. QUICK WIN -->
+      <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:16px;padding:20px;margin-bottom:32px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <span style="font-size:16px;">⚡</span>
+          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#15803D;margin:0;">O que você pode fazer hoje</p>
+        </div>
+        ${renderRecipe(d.recipe)}
+      </div>
+
+      <!-- 8. CTA -->
+      <div class="rcta-wrap">
+        <button onclick="goToVSL()"
+          style="width:100%;background:#0369A1;color:#fff;font-weight:700;font-size:17px;padding:18px 24px;border-radius:16px;border:none;cursor:pointer;transition:transform 0.22s,box-shadow 0.22s;display:block;text-align:center;"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 24px rgba(3,105,161,0.32)'"
+          onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+          ${d.cta}
+        </button>
+        ${d.sub ? `<p style="font-size:13px;color:#6B7280;text-align:center;line-height:1.6;margin:14px 0 0;">${d.sub}</p>` : ''}
+      </div>`;
 
     show('s-result');
-    setTimeout(animateBars, 400); // animate after screen transition
+    setTimeout(animateBars, 500);
   }
 
   function goToVSL() {
