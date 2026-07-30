@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnóstico Comercial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+          colors: {
+            bg: '#FAFAF8',
+            surface: '#FFFFFF',
+            accent: '#0369A1',
+            'accent-light': '#EFF6FF',
+            charcoal: '#1A1A1A',
+            muted: '#6B7280',
+            border: '#E5E7EB',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background-color: #FAFAF8; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+
+    /* Progress bar */
+    .progress-fill { transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+
+    /* Screen transitions */
+    .screen { display: none; opacity: 0; transform: translateX(24px); transition: opacity 0.3s ease, transform 0.3s ease; }
+    .screen.active { display: flex; opacity: 1; transform: translateX(0); }
+
+    /* Option buttons */
+    .option-btn {
+      transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+      border: 2px solid #E5E7EB;
+      background: #FFFFFF;
+      cursor: pointer;
+    }
+    .option-btn:hover {
+      border-color: #0369A1;
+      background: #EFF6FF;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(3,105,161,0.10);
+    }
+    .option-btn.selected {
+      border-color: #0369A1;
+      background: #0369A1;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(3,105,161,0.22);
+    }
+    .option-btn.selected .opt-label { color: #FFFFFF; }
+    .option-btn.selected .opt-dot {
+      border-color: rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.25);
+    }
+    .option-btn.selected .opt-dot::after {
+      content: '';
+      display: block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+    }
+    .opt-dot {
+      position: relative;
+      flex-shrink: 0;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid #D1D5DB;
+      transition: border-color 0.18s, background 0.18s;
+      margin-top: 2px;
+    }
+
+    /* CTA button */
+    .cta-btn {
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      cursor: pointer;
+    }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(3,105,161,0.30); }
+    .cta-btn:active { transform: translateY(0); box-shadow: none; }
+
+    /* Input */
+    input { transition: border-color 0.18s, box-shadow 0.18s; outline: none; }
+    input:focus { border-color: #0369A1 !important; box-shadow: 0 0 0 3px rgba(3,105,161,0.12); }
+
+    /* Processing dots */
+    @keyframes pulse-dot {
+      0%, 80%, 100% { transform: scale(0.5); opacity: 0.25; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: #0369A1; }
+    .dot-1 { animation: pulse-dot 1.4s infinite ease-in-out 0.0s; }
+    .dot-2 { animation: pulse-dot 1.4s infinite ease-in-out 0.2s; }
+    .dot-3 { animation: pulse-dot 1.4s infinite ease-in-out 0.4s; }
+
+    /* Result bullets */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .result-bullet { opacity: 0; animation: fadeSlideUp 0.45s ease forwards; }
+    .result-bullet:nth-child(1) { animation-delay: 0.15s; }
+    .result-bullet:nth-child(2) { animation-delay: 0.35s; }
+    .result-bullet:nth-child(3) { animation-delay: 0.55s; }
+    .result-cta-wrap { opacity: 0; animation: fadeSlideUp 0.45s ease forwards 0.8s; }
+
+    /* Factoide stat pop */
+    @keyframes statPop {
+      from { opacity: 0; transform: scale(0.75); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .stat-pop { animation: statPop 0.55s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, .screen, .option-btn, .cta-btn, .progress-fill, .dot,
+      .result-bullet, .result-cta-wrap, .stat-pop {
+        animation: none !important; transition: none !important;
+        opacity: 1 !important; transform: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- Progress bar -->
+  <div class="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-100">
+    <div id="progress-bar" class="progress-fill h-full bg-accent" style="width:0%"></div>
+  </div>
+
+  <div id="app" class="flex flex-col">
+
+    <!-- ── INTRO ── -->
+    <div id="screen-intro" class="screen active flex-col items-center justify-center min-h-screen px-6 py-20">
+      <div class="w-full max-w-[420px]">
+        <div class="text-center mb-10">
+          <span class="inline-block bg-accent-light text-accent text-xs font-semibold uppercase tracking-wider px-4 py-2 rounded-full mb-7">
+            Diagnóstico gratuito · 3 minutos
+          </span>
+          <h1 class="text-[28px] font-extrabold text-charcoal leading-tight mb-4">
+            Descubra por que quanto mais leads chegam ao seu corretor, menos vendas você fecha.
+          </h1>
+          <p class="text-muted text-base leading-relaxed">
+            9 perguntas. Resultado personalizado para a sua operação.
+          </p>
+        </div>
+        <button onclick="startQuiz()" class="cta-btn w-full bg-accent text-white font-bold py-4 px-6 rounded-2xl text-lg">
+          Começar diagnóstico →
+        </button>
+        <p class="text-center text-muted text-xs mt-4">Sem compromisso. 100% gratuito.</p>
+      </div>
+    </div>
+
+    <!-- ── QUESTIONS (rendered dynamically) ── -->
+    <div id="questions-container"></div>
+
+    <!-- ── FACTOIDE 1 (após Q3) ── -->
+    <div id="screen-factoide-1" class="screen flex-col items-center justify-center min-h-screen px-6 py-20 bg-accent-light">
+      <div class="w-full max-w-[420px] text-center">
+        <p class="text-accent text-xs font-bold uppercase tracking-widest mb-6">Você sabia?</p>
+        <div class="stat-pop text-7xl font-extrabold text-accent mb-3 leading-none">20%</div>
+        <p class="text-charcoal text-lg font-semibold mb-4 leading-snug">
+          das imobiliárias conseguem rastrear o que acontece com um lead do clique ao contrato.
+        </p>
+        <p class="text-muted text-sm leading-relaxed mb-2">
+          Isso significa que 8 em cada 10 proprietários pagam pelo lead sem saber se ele chegou, foi atendido ou simplesmente sumiu no WhatsApp do corretor.
+        </p>
+        <p class="text-muted text-xs mb-10">— Morada.ai, 2025</p>
+        <button onclick="nextAfterFactoide(1)" class="cta-btn w-full bg-accent text-white font-bold py-4 px-6 rounded-2xl text-base">
+          Continuar
+        </button>
+      </div>
+    </div>
+
+    <!-- ── FACTOIDE 2 (após Q8) ── -->
+    <div id="screen-factoide-2" class="screen flex-col items-center justify-center min-h-screen px-6 py-20 bg-accent-light">
+      <div class="w-full max-w-[420px] text-center">
+        <p class="text-accent text-xs font-bold uppercase tracking-widest mb-6">Você sabia?</p>
+        <div class="stat-pop text-7xl font-extrabold text-accent mb-3 leading-none">35%</div>
+        <p class="text-charcoal text-lg font-semibold mb-4 leading-snug">
+          de aumento no custo por clique para imóveis no Meta em apenas 1 ano — o maior entre todos os setores.
+        </p>
+        <p class="text-muted text-sm leading-relaxed mb-2">
+          O lead vai continuar ficando mais caro. Quem não tiver um filtro antes do corretor vai pagar cada vez mais pelo mesmo resultado.
+        </p>
+        <p class="text-muted text-xs mb-10">— ImoAds / ImoLead, 2025</p>
+        <button onclick="nextAfterFactoide(2)" class="cta-btn w-full bg-accent text-white font-bold py-4 px-6 rounded-2xl text-base">
+          Continuar
+        </button>
+      </div>
+    </div>
+
+    <!-- ── DATA COLLECTION ── -->
+    <div id="screen-data" class="screen flex-col items-center justify-center min-h-screen px-6 py-20">
+      <div class="w-full max-w-[420px]">
+        <div class="mb-8">
+          <p class="text-accent text-xs font-bold uppercase tracking-widest mb-3">Última etapa</p>
+          <h2 class="text-2xl font-extrabold text-charcoal mb-2">Seu diagnóstico está sendo preparado.</h2>
+          <p class="text-muted text-base">Para onde enviamos?</p>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-charcoal mb-2">Nome</label>
+            <input id="input-name" type="text" placeholder="Seu nome"
+              class="w-full border-2 border-border rounded-xl px-4 py-3 text-base text-charcoal bg-white" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-charcoal mb-2">WhatsApp</label>
+            <input id="input-phone" type="tel" inputmode="numeric" placeholder="(11) 99999-9999"
+              class="w-full border-2 border-border rounded-xl px-4 py-3 text-base text-charcoal bg-white" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-charcoal mb-1">
+              E-mail <span class="text-muted font-normal">(opcional)</span>
+            </label>
+            <input id="input-email" type="email" inputmode="email" placeholder="seu@email.com"
+              class="w-full border-2 border-border rounded-xl px-4 py-3 text-base text-charcoal bg-white" />
+          </div>
+        </div>
+        <button onclick="submitData()" class="cta-btn w-full bg-accent text-white font-bold py-4 px-6 rounded-2xl text-lg mt-6">
+          Ver meu diagnóstico →
+        </button>
+        <p id="data-error" class="text-red-500 text-sm text-center mt-3 hidden">
+          Preencha seu nome e WhatsApp para continuar.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── PROCESSING ── -->
+    <div id="screen-processing" class="screen flex-col items-center justify-center min-h-screen px-6 py-20">
+      <div class="w-full max-w-[420px] text-center">
+        <div class="flex justify-center gap-2 mb-8">
+          <div class="dot dot-1"></div>
+          <div class="dot dot-2"></div>
+          <div class="dot dot-3"></div>
+        </div>
+        <p id="processing-text" class="text-charcoal text-lg font-semibold"></p>
+      </div>
+    </div>
+
+    <!-- ── RESULT ── -->
+    <div id="screen-result" class="screen flex-col items-start justify-start min-h-screen px-6 pt-16 pb-20 overflow-y-auto">
+      <div class="w-full max-w-[420px] mx-auto">
+        <span id="result-badge"
+          class="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full bg-accent-light text-accent mb-5">
+          Diagnóstico
+        </span>
+        <h2 id="result-headline" class="text-2xl font-extrabold text-charcoal leading-snug mb-7"></h2>
+        <div id="result-bullets" class="space-y-3 mb-6"></div>
+        <div class="bg-accent-light rounded-2xl px-5 py-4 mb-8">
+          <p id="result-implication" class="text-charcoal text-base font-semibold leading-relaxed"></p>
+        </div>
+        <div class="result-cta-wrap">
+          <button id="result-cta-btn" onclick="goToVSL()"
+            class="cta-btn w-full bg-accent text-white font-bold py-4 px-6 rounded-2xl text-lg mb-4">
+            Entender como resolver isso →
+          </button>
+          <p id="result-sub" class="text-muted text-sm text-center leading-relaxed"></p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /app -->
+
+  <script>
+  // ── QUIZ DATA ────────────────────────────────────────────────────────────
+  const questions = [
+    {
+      id: 'q1',
+      text: 'Quantos corretores trabalham na sua imobiliária hoje?',
+      options: [
+        '1 corretor — só eu ou sou autônomo',
+        '2 a 3 corretores',
+        '4 a 6 corretores',
+        'Mais de 6 corretores'
+      ]
+    },
+    {
+      id: 'q2',
+      text: 'De onde vem a maioria dos seus leads hoje?',
+      options: [
+        'Portais de imóveis (Zap, OLX, Viva Real...)',
+        'Anúncios no Meta (Facebook / Instagram)',
+        'Indicações de clientes e parceiros',
+        'Não tenho um canal principal — vem de vários lados'
+      ]
+    },
+    {
+      id: 'q3',
+      text: 'Quando um lead entra em contato, como o atendimento funciona na prática?',
+      options: [
+        'Meu corretor vê a mensagem e responde pelo WhatsApp quando pode',
+        'O lead preenche algo antes e o corretor entra em contato depois',
+        'Depende — cada corretor tem seu jeito de trabalhar',
+        'Não acompanho de perto — cada um resolve como quer'
+      ]
+    },
+    // índice 3: Q4 (após factoide 1)
+    {
+      id: 'q4',
+      text: 'Dos leads que chegam ao seu corretor, quantos você acredita que realmente têm perfil para comprar nos próximos 3 meses?',
+      options: [
+        'Menos de 20% — a maioria é curiosidade ou renda incompatível',
+        'Entre 20% e 40% — alguns têm perfil mas muitos saem sem comprar',
+        'Não sei ao certo — nunca medi isso',
+        'Acima de 50% — a maioria parece ter perfil'
+      ]
+    },
+    {
+      id: 'q5',
+      text: 'Quando você investe em tráfego e o mês fecha sem resultado claro, o que passa pela sua cabeça?',
+      options: [
+        '"Gastei mas não sei onde foi o dinheiro — não tenho como rastrear"',
+        '"A plataforma não está entregando o que prometeu"',
+        '"Meu corretor não está convertendo os leads que chegam"',
+        '"Já desconfio de qualquer promessa — já fui frustrado antes"'
+      ]
+    },
+    {
+      id: 'q6',
+      text: 'Seu corretor já reclamou da qualidade dos leads que recebe?',
+      options: [
+        'Sim — é uma reclamação frequente',
+        'Às vezes — mas acho que o problema é dos dois lados',
+        'Raramente — mas ele converte menos do que deveria',
+        'Não — mas também não acompanho de perto o que chega pra ele'
+      ]
+    },
+    {
+      id: 'q7',
+      text: 'Se o processo continuar como está por mais 12 meses, o que acontece com sua operação?',
+      options: [
+        'Continuo gastando sem saber onde o dinheiro foi',
+        'Meu corretor vai desanimar — ou vou acabar perdendo ele',
+        'Vou perder mercado para concorrentes que estão rodando melhor',
+        'Fico travado no mesmo tamanho — crescer parece impossível sem contratar mais'
+      ]
+    },
+    // índice 7: Q8 (após resposta → factoide 2)
+    {
+      id: 'q8',
+      text: 'Para o diagnóstico fazer sentido pro tamanho da sua operação — qual foi o faturamento médio mensal da sua imobiliária nos últimos 3 meses?',
+      options: [
+        'Menos de R$30.000/mês',
+        'Entre R$30.000 e R$50.000/mês',
+        'Entre R$50.000 e R$100.000/mês',
+        'Entre R$100.000 e R$500.000/mês',
+        'Entre R$500.000 e R$1.000.000/mês',
+        'Acima de R$1.000.000/mês'
+      ]
+    },
+    // índice 8: Q9 (após factoide 2)
+    {
+      id: 'q9',
+      text: 'Com base no que você respondeu, parece que há espaço real para melhoria. Você está buscando resolver isso...',
+      options: [
+        'Agora — quero previsibilidade de leads e visitas nos próximos 30 dias',
+        'Em breve — estou pesquisando opções para os próximos meses',
+        'Ainda estou entendendo o problema — preciso de mais informações'
+      ]
+    }
+  ];
+
+  // ── RESULTS ──────────────────────────────────────────────────────────────
+  const results = {
+    A: {
+      badge: 'Gargalo identificado',
+      headline: 'Você está pagando pelo lead certo para ele morrer no lugar errado.',
+      bullets: [
+        { icon: '✓', green: true,  text: 'Você já tem tráfego rodando' },
+        { icon: '✓', green: true,  text: 'Leads chegam até o corretor' },
+        { icon: '⚠', warn: true,   text: 'A triagem ainda acontece no WhatsApp — o lugar mais caro e ineficiente para qualificar alguém' }
+      ],
+      implication: 'Isso explica por que quanto mais você investe, mais seu corretor reclama — e menos visitas acontecem.',
+      sub: 'No vídeo a seguir: por que imobiliárias com o mesmo tráfego que o seu fecham 3× mais — e o que é diferente no processo delas.'
+    },
+    B: {
+      badge: 'Gargalo identificado',
+      headline: 'Você investe em tráfego mas não tem como saber se está funcionando.',
+      bullets: [
+        { icon: '✓', green: true,  text: 'Você investe em geração de leads' },
+        { icon: '?', neutral: true, text: 'Mas o que acontece depois do clique é uma caixa-preta' },
+        { icon: '⚠', warn: true,   text: 'Sem rastreamento do funil, o buraco fica invisível — e você continua pagando por ele' }
+      ],
+      implication: 'Impossível corrigir o que não se mede. O diagnóstico começa em mapear onde os leads estão sumindo.',
+      sub: 'No vídeo a seguir: como imobiliárias que faturam de forma previsível rastreiam cada lead — do clique à visita.'
+    },
+    C: {
+      badge: 'Gargalo identificado',
+      headline: 'Seus leads chegam, mas somem antes do corretor responder.',
+      bullets: [
+        { icon: '✓', green: true,  text: 'Os leads chegam com algum perfil' },
+        { icon: '✓', green: true,  text: 'Seu corretor tenta atender' },
+        { icon: '⚠', warn: true,   text: 'A demora entre o lead chegar e o primeiro contato custa a venda — e nenhum processo controla isso hoje' }
+      ],
+      implication: 'No mercado imobiliário, o lead raramente espera. Quem responde primeiro tem vantagem real — não quem responde melhor.',
+      sub: 'No vídeo a seguir: como uma resposta nos primeiros minutos muda completamente a taxa de visitas agendadas.'
+    },
+    D: {
+      badge: 'Gargalo identificado',
+      headline: 'Você depende de fontes de lead que não estão sob o seu controle.',
+      bullets: [
+        { icon: '✓', green: true,  text: 'Você tem uma operação rodando' },
+        { icon: '?', neutral: true, text: 'Mas portal e indicação não escalam — e ficam mais caros a cada ano' },
+        { icon: '⚠', warn: true,   text: 'Sem um canal próprio de aquisição, você está à mercê de plataformas que aumentam o preço quando querem' }
+      ],
+      implication: 'Previsibilidade comercial começa em ter controle sobre de onde vêm os leads — não em depender de quem os vende.',
+      sub: 'No vídeo a seguir: como construir um canal de leads que você controla — sem depender de portal ou indicação.'
+    },
+    E: {
+      badge: 'Diagnóstico pronto',
+      headline: 'Há espaço claro para crescimento na sua operação.',
+      bullets: [
+        { icon: '✓', green: true,  text: 'Sua operação está funcionando' },
+        { icon: '✓', green: true,  text: 'Você já identificou os gargalos certos' },
+        { icon: '→', accent: true,  text: 'O próximo passo é estruturar antes de acelerar' }
+      ],
+      implication: 'Crescer sem estrutura gera mais caos, não mais resultado. O momento de preparar o terreno é agora.',
+      sub: 'Vamos te enviar por WhatsApp um material sobre como estruturar a aquisição antes de escalar o investimento.'
+    },
+    desqualificado: {
+      badge: 'Obrigado por responder',
+      headline: 'Seu diagnóstico está salvo.',
+      bullets: [
+        { icon: '→', accent: true, text: 'Vamos te enviar conteúdo relevante para o momento atual da sua operação' }
+      ],
+      implication: 'Quando o momento for certo, estaremos aqui para te ajudar a estruturar a aquisição de clientes.',
+      sub: ''
+    }
+  };
+
+  // ── STATE ─────────────────────────────────────────────────────────────────
+  let answers = {};
+
+  // ── SCREEN MANAGEMENT ────────────────────────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => {
+      s.classList.remove('active');
+      s.style.display = 'none';
+    });
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = 'flex';
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('active')));
+  }
+
+  function setProgress(step, total) {
+    document.getElementById('progress-bar').style.width = Math.round((step / total) * 100) + '%';
+  }
+
+  // ── QUIZ FLOW ─────────────────────────────────────────────────────────────
+  function startQuiz() {
+    renderQuestion(0);
+    setProgress(1, 9);
+  }
+
+  function renderQuestion(index) {
+    const q = questions[index];
+    const container = document.getElementById('questions-container');
+    const old = document.getElementById('screen-question');
+    if (old) old.remove();
+
+    const div = document.createElement('div');
+    div.id = 'screen-question';
+    div.className = 'screen flex-col items-center justify-center min-h-screen px-6 py-20';
+
+    const questionNum = index + 1; // display number (1-9)
+
+    div.innerHTML = `
+      <div class="w-full max-w-[420px]">
+        <p class="text-muted text-sm font-semibold mb-4">${questionNum} de 9</p>
+        <h2 class="text-xl font-extrabold text-charcoal leading-snug mb-6">${q.text}</h2>
+        <div class="space-y-3" id="opts-${index}">
+          ${q.options.map((opt, i) => `
+            <button
+              class="option-btn w-full text-left px-5 py-4 rounded-2xl flex items-start gap-3"
+              onclick="selectOption(${index}, ${i})"
+              data-i="${i}"
+            >
+              <span class="opt-dot"></span>
+              <span class="opt-label text-charcoal text-[15px] leading-snug font-medium">${opt}</span>
+            </button>
+          `).join('')}
+        </div>
+      </div>`;
+
+    container.appendChild(div);
+    requestAnimationFrame(() => requestAnimationFrame(() => div.classList.add('active')));
+    setProgress(questionNum, 9);
+  }
+
+  function selectOption(qIndex, optIndex) {
+    const q = questions[qIndex];
+    answers[q.id] = optIndex;
+
+    // Visual feedback
+    document.querySelectorAll(`#opts-${qIndex} .option-btn`).forEach((btn, i) => {
+      btn.classList.toggle('selected', i === optIndex);
+    });
+
+    setTimeout(() => advance(qIndex), 300);
+  }
+
+  function advance(qIndex) {
+    // Factoide 1 after Q3 (index 2)
+    if (qIndex === 2) { showScreen('screen-factoide-1'); return; }
+    // Factoide 2 after Q8 (index 7)
+    if (qIndex === 7) { showScreen('screen-factoide-2'); return; }
+    // Data collection after Q9 (index 8)
+    if (qIndex === 8) { showScreen('screen-data'); setProgress(9, 9); return; }
+    // Next question
+    renderQuestion(qIndex + 1);
+  }
+
+  function nextAfterFactoide(num) {
+    // 1 → Q4 (index 3) | 2 → Q9 (index 8)
+    renderQuestion(num === 1 ? 3 : 8);
+  }
+
+  // ── DATA SUBMISSION ───────────────────────────────────────────────────────
+  function submitData() {
+    const name  = document.getElementById('input-name').value.trim();
+    const phone = document.getElementById('input-phone').value.trim();
+    const err   = document.getElementById('data-error');
+
+    if (!name || !phone) { err.classList.remove('hidden'); return; }
+    err.classList.add('hidden');
+
+    answers.name  = name;
+    answers.phone = phone;
+    answers.email = document.getElementById('input-email').value.trim();
+
+    runProcessing();
+  }
+
+  // ── PROCESSING ────────────────────────────────────────────────────────────
+  const processingSteps = [
+    'Analisando sua operação...',
+    'Identificando o principal gargalo...',
+    'Gerando seu diagnóstico personalizado...'
+  ];
+
+  function runProcessing() {
+    showScreen('screen-processing');
+    setProgress(100, 100);
+
+    const el = document.getElementById('processing-text');
+    let i = 0;
+    el.textContent = processingSteps[0];
+
+    const iv = setInterval(() => {
+      i++;
+      if (i < processingSteps.length) {
+        el.textContent = processingSteps[i];
+      } else {
+        clearInterval(iv);
+        setTimeout(showResult, 700);
+      }
+    }, 950);
+  }
+
+  // ── ROUTING ───────────────────────────────────────────────────────────────
+  function calcBalde() {
+    const q2 = answers.q2;
+    const q3 = answers.q3;
+    const q4 = answers.q4;
+    const q6 = answers.q6;
+    const q8 = answers.q8;
+    const q9 = answers.q9;
+
+    // Camada 1 — Qualificação
+    if (q8 === 0)    return 'desqualificado'; // < R$30k
+    if (q9 === 2)    return 'desqualificado'; // ainda entendo
+    if (q9 === 1)    return 'E';              // em breve
+
+    // Camada 2 — Problema
+    if (q2 === 0 || q2 === 2)          return 'D'; // portais / indicação
+    if (q4 === 2 || q3 === 3)          return 'B'; // não sabe medir / não acompanha
+    if (q4 === 0 || q6 === 0)          return 'A'; // filtro
+    if ((q3 === 0 || q3 === 2) && q6 === 2) return 'C'; // velocidade
+
+    return 'A'; // default
+  }
+
+  // ── RESULT SCREEN ─────────────────────────────────────────────────────────
+  function showResult() {
+    const balde = calcBalde();
+    const d     = results[balde];
+    answers.balde = balde;
+
+    document.getElementById('result-badge').textContent     = d.badge;
+    document.getElementById('result-headline').textContent  = d.headline;
+    document.getElementById('result-implication').textContent = d.implication;
+    document.getElementById('result-sub').textContent       = d.sub;
+    document.getElementById('result-cta-btn').textContent   =
+      balde === 'E' ? 'Receber conteúdo gratuito →' :
+      balde === 'desqualificado' ? 'Entendido' :
+      'Entender como resolver isso →';
+
+    const bulletColors = (b) => {
+      if (b.green)   return 'text-emerald-600';
+      if (b.warn)    return 'text-amber-500';
+      if (b.accent)  return 'text-accent';
+      return 'text-muted';
+    };
+
+    document.getElementById('result-bullets').innerHTML = d.bullets.map(b => `
+      <div class="result-bullet flex items-start gap-3 bg-white rounded-xl px-4 py-4 shadow-sm border border-border">
+        <span class="${bulletColors(b)} font-bold text-lg leading-none mt-0.5 flex-shrink-0">${b.icon}</span>
+        <p class="text-charcoal text-[15px] leading-snug font-medium">${b.text}</p>
+      </div>
+    `).join('');
+
+    showScreen('screen-result');
+  }
+
+  function goToVSL() {
+    // Placeholder — substituir pela URL real de cada balde
+    const urls = {
+      A: '#vsl-a',
+      B: '#vsl-b',
+      C: '#vsl-c',
+      D: '#vsl-d',
+      E: '#nutricao',
+      desqualificado: '#'
+    };
+    window.location.href = urls[answers.balde] || '#';
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  showScreen('screen-intro');
+  </script>
+</body>
+</html>
