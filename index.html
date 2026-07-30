@@ -9,14 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZFT88X9NW4"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-ZFT88X9NW4');
-  </script>
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-PB23LXM2');</script>
+  <!-- End Google Tag Manager -->
   <script>
     tailwind.config = {
       theme: {
@@ -116,6 +115,10 @@
   </style>
 </head>
 <body class="min-h-screen">
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PB23LXM2"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 
   <!-- Progress -->
   <div class="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-100">
@@ -529,12 +532,6 @@
   // ── STATE ─────────────────────────────────────────────────────────────────
   const ans = {};
 
-  // ── ANALYTICS ─────────────────────────────────────────────────────────────
-  function track(step_name, step_index, extra) {
-    if (typeof gtag === 'undefined') return;
-    gtag('event', 'quiz_funnel', Object.assign({ step_name, step_index }, extra || {}));
-  }
-
   // ── SCREEN MANAGER ────────────────────────────────────────────────────────
   // ALL show/hide is done via inline style.display — zero CSS class conflicts.
   const SCREENS = ['s-intro','s-f1','s-f2','s-data','s-proc','s-result'];
@@ -562,7 +559,7 @@
   }
 
   // ── QUIZ FLOW ─────────────────────────────────────────────────────────────
-  function startQuiz() { track('quiz_start', 1); renderQ(0); prog(1,9); }
+  function startQuiz() { renderQ(0); prog(1,9); }
 
   function renderQ(i) {
     const q = getQuestion(i);
@@ -598,7 +595,6 @@
     requestAnimationFrame(() => requestAnimationFrame(() => sq.classList.add('show')));
 
     prog(i+1, 9);
-    track('q' + (i+1), i + 2); // Q1=step2 … Q9=step10
   }
 
   function pick(qi, oi) {
@@ -608,27 +604,13 @@
   }
 
   function advance(qi) {
-    if (qi === 2) { track('factoide_1', 5); show('s-f1'); return; }
-    if (qi === 7) { track('factoide_2', 11); show('s-f2'); return; }
-    if (qi === 8) { track('formulario', 13); show('s-data'); prog(9,9); return; }
+    if (qi === 2) { show('s-f1'); return; }
+    if (qi === 7) { show('s-f2'); return; }
+    if (qi === 8) { show('s-data'); prog(9,9); return; }
     renderQ(qi+1);
   }
 
   function nextAfterF(n) { renderQ(n===1 ? 3 : 8); }
-
-  // ── SHEETS ENDPOINT — cole aqui a URL do Web App após publicar o Apps Script ──
-  const SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyVwGwoiMr9ixV8VXL_srBdQikZ-IINVtUAtFKTBMb0mDFlQo_N5lNwSk8C506xix73aA/exec';
-
-  function sendToSheet(payload) {
-    if (!SHEET_ENDPOINT) return;
-    const params = new URLSearchParams({
-      name:  payload.name  || '',
-      phone: payload.phone || '',
-      email: payload.email || '',
-      balde: payload.balde || ''
-    });
-    new Image().src = SHEET_ENDPOINT + '?' + params.toString();
-  }
 
   // ── DATA ──────────────────────────────────────────────────────────────────
   function submitData() {
@@ -639,17 +621,13 @@
     err.style.display='none';
     ans.name=name; ans.phone=phone;
     ans.email=document.getElementById('in-email').value.trim();
-    track('form_enviado', 14);
-    // calcula balde já aqui para gravar junto com o lead
     const balde = calcBalde(); ans.balde = balde;
-    sendToSheet({ name: ans.name, phone: ans.phone, email: ans.email, balde });
     runProc();
   }
 
   // ── PROCESSING ────────────────────────────────────────────────────────────
   const STEPS=['Analisando sua operação...','Identificando o principal gargalo...','Gerando seu diagnóstico personalizado...'];
   function runProc() {
-    track('processando', 15);
     show('s-proc'); prog(100,100);
     const el=document.getElementById('proc-text');
     let i=0; el.textContent=STEPS[0];
@@ -826,20 +804,17 @@
         ${d.sub ? `<p style="font-size:13px;color:#6B7280;text-align:center;line-height:1.6;margin:14px 0 0;">${d.sub}</p>` : ''}
       </div>`;
 
-    track('resultado', 16, { balde: b });
     show('s-result');
     setTimeout(animateBars, 500);
   }
 
   function goToVSL() {
     const urls={A:'agendamento-a.html',B:'agendamento-b.html',C:'agendamento-c.html',D:'agendamento-d.html',E:'desqualificado.html',X:'desqualificado.html'};
-    track('cta_clicado', 17, { balde: ans.balde, destino: urls[ans.balde] });
     window.location.href=urls[ans.balde]||'desqualificado.html';
   }
 
   // ── INIT ──────────────────────────────────────────────────────────────────
   show('s-intro');
-  track('intro', 0);
   </script>
 </body>
 </html>
