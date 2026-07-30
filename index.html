@@ -293,6 +293,12 @@
     { text: '"Promessas mirabolantes, poucos leads entregues, todos desqualificados. Jogam a culpa no cliente."', attr: 'Dono de imobiliária · Reclame Aqui' }
   ];
 
+  const RA_QUOTES_AUTONOMO = [
+    { text: '"Leads totalmente desqualificados, maioria curiosos com renda muito baixa. Nenhuma venda convertida, dinheiro e horas do meu dia desperdiçados."', attr: 'Corretor autônomo · Reclame Aqui' },
+    { text: '"Custo por lead inviável para quem trabalha sozinho. Passei semanas atendendo contatos sem perfil — zero conversão."', attr: 'Corretor autônomo · Reclame Aqui' },
+    { text: '"Promessas mirabolantes, poucos leads entregues, todos desqualificados. E eu que perdi o tempo atendendo um a um."', attr: 'Corretor autônomo · Reclame Aqui' }
+  ];
+
   const RESULTS = {
     A:{
       badge:'Gargalo identificado',
@@ -417,6 +423,58 @@
       sub:''
     }
   };
+
+  // ── OVERRIDES PARA CORRETOR AUTÔNOMO (q1 === 0) ──────────────────────────
+  // Só os campos que diferem do texto padrão. Merged em getResult().
+  const RESULTS_AUTONOMO = {
+    A:{
+      headline:'Você está pagando pelo lead certo — e gastando seu tempo com o errado.',
+      impl:'Isso explica por que quanto mais você investe, mais você se sobrecarrega — e menos visitas acontecem.',
+      recipe:[
+        { type:'label',   text:'Faça isso hoje — antes de responder o próximo lead que chegar:' },
+        { type:'message', text:'"[Nome], você tem financiamento aprovado ou reserva disponível para iniciar a compra nos próximos 60 dias?"' },
+        { type:'routing', items:[
+          { ok:true,  text:'SIM → você dedica tempo e energia a esse lead agora' },
+          { ok:false, text:'NÃO → entra em nutrição, não no seu tempo de atendimento ativo' }
+        ]},
+        { type:'result', text:'Isso sozinho elimina até 60% dos leads que tomam o seu tempo sem virar visita.' }
+      ],
+      sub:'30 minutos para saber exatamente onde o lead está sendo perdido — e como você para de gastar energia com quem não tem perfil.'
+    },
+    B:{
+      recipe:[
+        { type:'label', text:'Faça isso hoje — leva 10 minutos e vai revelar o buraco:' },
+        { type:'steps', items:[
+          'Crie uma planilha com 4 colunas: <strong>Data · Canal · Atendido (S/N) · Resultado</strong>',
+          'Preencha você mesmo por 14 dias — 2 minutos por lead',
+          'Você vai ver exatamente em qual etapa os leads estão sumindo'
+        ]},
+        { type:'result', text:'Com esse mapa em mãos, você para de investir às cegas e começa a corrigir a etapa certa.' }
+      ]
+    },
+    C:{
+      impl:'No mercado imobiliário, o lead raramente espera. Quando você está ocupado com outro atendimento, o concorrente que responde primeiro leva a venda.',
+      recipe:[
+        { type:'label', text:'Configure isso hoje no WhatsApp Business — leva 5 minutos:' },
+        { type:'message', text:'"Oi [nome]! Recebi sua mensagem. Para te atender melhor: você procura imóvel para morar ou investir? E qual faixa de valor?"' },
+        { type:'routing', items:[
+          { ok:true,  text:'Lead responde → você já recebe o perfil antes de ligar' },
+          { ok:false, text:'Lead não responde em 24h → vai para nutrição automática' }
+        ]},
+        { type:'result', text:'Mantém o lead ativo nos primeiros minutos — sem depender de você lembrar de responder quando está com outro cliente.' }
+      ],
+      sub:'30 minutos para identificar onde a velocidade está quebrando — e o que mudar para parar de perder lead bom por demora de atendimento.'
+    },
+    D:{
+      sub:'30 minutos para mapear o que está impedindo você de ter previsibilidade real de leads — sem depender de portal ou indicação.'
+    }
+  };
+
+  function getResult(b, isAutonomo) {
+    const base = RESULTS[b];
+    if (!isAutonomo || !RESULTS_AUTONOMO[b]) return base;
+    return Object.assign({}, base, RESULTS_AUTONOMO[b]);
+  }
 
   // ── STATE ─────────────────────────────────────────────────────────────────
   const ans = {};
@@ -641,8 +699,16 @@
   // ── RESULT ────────────────────────────────────────────────────────────────
   function showResult() {
     const b  = ans.balde || calcBalde(); ans.balde = b;
-    const d  = RESULTS[b];
+    const isAutonomo = ans.q1 === 0;
+    const d  = getResult(b, isAutonomo);
     const nm = (ans.name||'').split(' ')[0];
+    const quotes     = isAutonomo ? RA_QUOTES_AUTONOMO : RA_QUOTES;
+    const quotesIntro = isAutonomo
+      ? 'Antes do seu diagnóstico, veja o que outros corretores autônomos relataram:'
+      : 'Antes do seu diagnóstico, veja o que outros donos de imobiliária relataram:';
+    const villainBody = isAutonomo
+      ? 'Sem um processo de qualificação antes de atender, qualquer lead que chega drena sua energia — e você acaba gastando horas com quem não tem perfil enquanto perde oportunidades com quem tem.'
+      : 'Sem um filtro antes do corretor, qualquer agência, portal ou investimento entrega o mesmo resultado. O lead chega ao lugar errado, na hora errada, sem qualificação — e o corretor reclama, e o dono culpa o tráfego.';
 
     document.getElementById('r-body').innerHTML = `
 
@@ -655,8 +721,8 @@
       ${b!=='X' ? `
       <div style="background:#FFF7ED;border-radius:16px;padding:20px;margin-bottom:24px;">
         <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#C2410C;margin-bottom:6px;">Você não está sozinho nisso</p>
-        <p style="font-size:13px;color:#374151;line-height:1.55;margin-bottom:16px;">Antes do seu diagnóstico, veja o que outros donos de imobiliária relataram:</p>
-        ${RA_QUOTES.map(q=>`
+        <p style="font-size:13px;color:#374151;line-height:1.55;margin-bottom:16px;">${quotesIntro}</p>
+        ${quotes.map(q=>`
           <div style="background:#fff;border-left:3px solid #F97316;border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
               <img src="https://www.google.com/s2/favicons?domain=reclameaqui.com.br&sz=64"
@@ -675,7 +741,7 @@
       <div style="background:#1A1A1A;border-radius:16px;padding:22px;margin-bottom:24px;">
         <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#6B7280;margin-bottom:10px;">A causa real</p>
         <p style="font-size:20px;font-weight:800;color:#FFFFFF;line-height:1.3;margin-bottom:10px;">O problema não foi você — e não foi o tráfego.</p>
-        <p style="font-size:14px;color:#D1D5DB;line-height:1.65;margin:0;">Sem um filtro antes do corretor, qualquer agência, portal ou investimento entrega o mesmo resultado. O lead chega ao lugar errado, na hora errada, sem qualificação — e o corretor reclama, e o dono culpa o tráfego.</p>
+        <p style="font-size:14px;color:#D1D5DB;line-height:1.65;margin:0;">${villainBody}</p>
       </div>` : ''}
 
       <!-- 4. DIAGNÓSTICO PERSONALIZADO -->
