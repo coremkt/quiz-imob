@@ -424,6 +424,56 @@
     }
   };
 
+  // ── PERGUNTAS ADAPTADAS PARA CORRETOR AUTÔNOMO (q1 === 0) ───────────────
+  // Indexadas pela posição no array QS. Só os campos que diferem.
+  const QS_AUTONOMO = {
+    2: { // Q3 — atendimento: "meu corretor" → "eu"
+      text: 'Quando um lead entra em contato, como funciona na prática?',
+      opts: [
+        'Eu vejo a mensagem e respondo pelo WhatsApp quando posso',
+        'O lead preenche algo antes e eu entro em contato depois',
+        'Não tenho processo definido — cada lead atendo de um jeito',
+        'Não tenho processo claro — atendo conforme o tempo permite'
+      ]
+    },
+    3: { // Q4 — "ao seu corretor" → "até você"
+      text: 'Dos leads que chegam até você, quantos realmente têm perfil para comprar nos próximos 3 meses?'
+    },
+    4: { // Q5 — opção 2: "Meu corretor não está convertendo" → "eu não estou convertendo"
+      opts: [
+        '"Gastei mas não sei onde foi o dinheiro — não tenho como rastrear"',
+        '"A plataforma não está entregando o que prometeu"',
+        '"Não estou conseguindo converter os leads que chegam"',
+        '"Já desconfio de qualquer promessa — já fui frustrado antes"'
+      ]
+    },
+    5: { // Q6 — rewrite completo: "Seu corretor reclamou" → situação do autônomo
+      text: 'Você já sentiu que a maioria dos leads que chegam não tem perfil real para comprar?',
+      opts: [
+        'Sim — gasto muito tempo com leads sem perfil real',
+        'Às vezes — não sei se o problema é o canal ou o meu atendimento',
+        'Raramente — mas converto menos do que deveria',
+        'Não — mas também não rastreio os resultados por canal'
+      ]
+    },
+    6: { // Q7 — opção 1: "Meu corretor vai desanimar" → "vou continuar sobrecarregado"
+      opts: [
+        'Continuo gastando sem saber onde o dinheiro foi',
+        'Vou continuar sobrecarregado — e perdendo vendas por falta de processo',
+        'Vou perder mercado para concorrentes que estão rodando melhor',
+        'Fico travado no mesmo volume — crescer parece impossível sem estrutura'
+      ]
+    },
+    7: { // Q8 — "da sua imobiliária" → "o seu"
+      text: 'Para o diagnóstico fazer sentido pro tamanho da sua operação — qual foi o seu faturamento médio mensal nos últimos 3 meses?'
+    }
+  };
+
+  function getQuestion(i) {
+    if (ans.q1 !== 0 || !QS_AUTONOMO[i]) return QS[i];
+    return Object.assign({}, QS[i], QS_AUTONOMO[i]);
+  }
+
   // ── OVERRIDES PARA CORRETOR AUTÔNOMO (q1 === 0) ──────────────────────────
   // Só os campos que diferem do texto padrão. Merged em getResult().
   const RESULTS_AUTONOMO = {
@@ -515,7 +565,7 @@
   function startQuiz() { track('quiz_start', 1); renderQ(0); prog(1,9); }
 
   function renderQ(i) {
-    const q = QS[i];
+    const q = getQuestion(i);
     const wrap = document.getElementById('q-wrap');
 
     // Build screen
