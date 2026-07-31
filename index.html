@@ -570,10 +570,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }).catch(function(){});
   }
   function sendLead() {
-    fetch(SB_URL + '/rest/v1/leads', {
+    // Rotas pelo Edge Function — nenhum dado PII vai direto ao Supabase do browser
+    fetch(SB_URL + '/functions/v1/submit-lead', {
       method: 'POST',
-      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        cf_token: cfToken,
         quiz_id: QUIZ_ID, session_id: SID,
         nome: ans.name||'', telefone: ans.phone||'', email: ans.email||'',
         balde: ans.balde||'', balde_label: BALDE_LABELS[ans.balde]||'',
@@ -586,7 +588,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         q7: ans.q7!==undefined?ans.q7:null,
         q8: ans.q8!==undefined?ans.q8:null,
         q9: ans.q9!==undefined?ans.q9:null
-      })
+      }),
+      keepalive: true
     }).catch(function(){});
   }
 
