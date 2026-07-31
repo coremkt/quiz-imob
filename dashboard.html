@@ -55,6 +55,10 @@
     .btn-ghost { background:none; border:1px solid var(--border-2); border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; color:var(--text-2); cursor:pointer; font-family:inherit; transition:color .18s, border-color .18s; }
     .btn-ghost:hover { color:var(--text); border-color:var(--border-2); }
     .last-upd { font-size:11px; color:var(--text-3); }
+    .date-filter { display:flex; gap:2px; background:var(--s2); border-radius:8px; padding:3px; }
+    .df-btn { padding:5px 10px; font-size:11px; font-weight:700; border-radius:6px; border:none; cursor:pointer; font-family:inherit; transition:background .15s,color .15s; color:var(--text-3); background:transparent; white-space:nowrap; }
+    .df-btn.active { background:var(--s3); color:var(--text); }
+    .df-btn:hover:not(.active) { color:var(--text-2); }
 
     /* ── MAIN ── */
     main { max-width:1200px; margin:0 auto; padding:24px; }
@@ -243,6 +247,14 @@
     <button class="tab-btn" onclick="switchTab('pipeline')">Pipeline</button>
   </div>
   <div class="header-right">
+    <div class="date-filter" id="date-filter">
+      <button class="df-btn active" onclick="setDateFilter(0)"   data-days="0"   >Tudo</button>
+      <button class="df-btn"        onclick="setDateFilter(7)"   data-days="7"   >7d</button>
+      <button class="df-btn"        onclick="setDateFilter(30)"  data-days="30"  >30d</button>
+      <button class="df-btn"        onclick="setDateFilter(90)"  data-days="90"  >90d</button>
+      <button class="df-btn"        onclick="setDateFilter(180)" data-days="180" >180d</button>
+      <button class="df-btn"        onclick="setDateFilter(360)" data-days="360" >360d</button>
+    </div>
     <span id="last-upd" class="last-upd"></span>
     <button class="btn-ghost" onclick="refresh()" aria-label="Atualizar dados" style="display:flex;align-items:center;gap:6px;">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
@@ -479,6 +491,24 @@ let eventosData  = [];
 let leadsData    = [];
 let selectedLead = null;
 let currentTab   = 'funil';
+let dateFilter   = 0; // 0 = todos; N = últimos N dias
+
+function applyDateFilter(rows, field) {
+  if (!dateFilter) return rows;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - dateFilter);
+  const cutoffStr = cutoff.toISOString();
+  return rows.filter(r => r[field] && r[field] >= cutoffStr);
+}
+
+function setDateFilter(days) {
+  dateFilter = days;
+  document.querySelectorAll('#date-filter .df-btn').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.days) === days);
+  });
+  renderFunil();
+  renderPipeline();
+}
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
@@ -554,7 +584,7 @@ function loadQuiz(quizId) {
   currentQuiz = quizId;
   setState('loading');
   Promise.all([
-    sbFetch('eventos', { 'quiz_id':'eq.'+quizId, 'select':'session_id,step,step_index', 'limit':'50000' }),
+    sbFetch('eventos', { 'quiz_id':'eq.'+quizId, 'select':'session_id,step,step_index,criado_em', 'limit':'50000' }),
     sbFetch('leads',   { 'quiz_id':'eq.'+quizId, 'select':'*', 'order':'criado_em.desc', 'limit':'10000' })
   ]).then(([ev, ld]) => {
     eventosData = ev || [];
@@ -587,9 +617,9 @@ function setState(s) {
 }
 
 // ── FUNIL ─────────────────────────────────────────────────────────────────
-function calcFunnel() {
+function calcFunnel(evData) {
   const byStep = {};
-  eventosData.forEach(e => {
+  evData.forEach(e => {
     if (!e.step) return;
     if (!byStep[e.step]) byStep[e.step] = new Set();
     if (e.session_id) byStep[e.step].add(e.session_id);
@@ -605,7 +635,10 @@ function calcFunnel() {
 }
 
 function renderFunil() {
-  const funnel = calcFunnel();
+  const evFilt  = applyDateFilter(eventosData, 'criado_em');
+  const ldFilt  = applyDateFilter(leadsData,   'criado_em');
+
+  const funnel = calcFunnel(evFilt);
   const intro  = funnel.find(s=>s.name==='intro')        || {count:0};
   const starts = funnel.find(s=>s.name==='quiz_start')   || {count:0};
   const leads  = funnel.find(s=>s.name==='form_enviado') || {count:0};
@@ -616,14 +649,14 @@ function renderFunil() {
   document.getElementById('c-conv').textContent     = conv + '%';
   document.getElementById('c-conv-sub').textContent = base.toLocaleString('pt-BR') + ' visitantes → ' + ctas.count.toLocaleString('pt-BR') + ' MQL';
   document.getElementById('c-starts').textContent   = starts.count.toLocaleString('pt-BR');
-  document.getElementById('c-leads').textContent    = leadsData.length.toLocaleString('pt-BR');
+  document.getElementById('c-leads').textContent    = ldFilt.length.toLocaleString('pt-BR');
   document.getElementById('c-ctas').textContent     = ctas.count.toLocaleString('pt-BR');
 
-  // KPIs do Pipeline CRM (via leadsData) — contagem exata por status (espelha o kanban)
-  const pCallAgen  = leadsData.filter(l=>(l.status||'novo')==='call_agendada').length;
-  const pCallFeita = leadsData.filter(l=>(l.status||'novo')==='call_feita').length;
-  const pFechado   = leadsData.filter(l=>(l.status||'novo')==='fechado').length;
-  const pPerdido   = leadsData.filter(l=>(l.status||'novo')==='perdido').length;
+  // KPIs do Pipeline CRM — cumulativos: lead que avança de stage não some da métrica anterior
+  const pCallAgen  = ldFilt.filter(l=>['call_agendada','call_feita','fechado','perdido'].includes(l.status||'novo')).length;
+  const pCallFeita = ldFilt.filter(l=>['call_feita','fechado','perdido'].includes(l.status||'novo')).length;
+  const pFechado   = ldFilt.filter(l=>(l.status||'novo')==='fechado').length;
+  const pPerdido   = ldFilt.filter(l=>(l.status||'novo')==='perdido').length;
   const txDenom    = pFechado + pPerdido;
   const txFech     = txDenom > 0 ? Math.round(pFechado / txDenom * 100) : 0;
   document.getElementById('p-callagem').textContent  = pCallAgen.toLocaleString('pt-BR');
@@ -757,10 +790,11 @@ function renderFunil() {
 
 // ── PIPELINE ──────────────────────────────────────────────────────────────
 function renderPipeline() {
-  const kanban = document.getElementById('kanban');
+  const kanban  = document.getElementById('kanban');
   kanban.innerHTML = '';
+  const ldFilt  = applyDateFilter(leadsData, 'criado_em');
   STATUSES.forEach(st => {
-    const cards = leadsData.filter(l=>(l.status||'novo')===st.key);
+    const cards = ldFilt.filter(l=>(l.status||'novo')===st.key);
     const total = cards.reduce((acc,l)=>acc+(parseFloat(l.valor)||0),0);
     const col = document.createElement('div');
     col.className = 'k-col';
