@@ -239,6 +239,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <input id="in-email" type="email" inputmode="email" placeholder="seu@email.com"
             class="w-full border-2 border-border rounded-xl px-4 py-3 text-base text-charcoal bg-white" />
         </div>
+        <!-- honeypot: humanos nunca veem, bots preenchem -->
+        <input id="hp-site" type="text" name="site" autocomplete="off" tabindex="-1" aria-hidden="true"
+          style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;overflow:hidden;" />
       </div>
       <button onclick="submitData()" class="cta w-full bg-accent text-white font-bold py-4 px-6 rounded-2xl text-lg mt-6">
         Ver meu diagnóstico →
@@ -536,7 +539,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const SB_URL  = 'https://jvzdoycxlpbdhtyhpmcw.supabase.co';
   const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2emRveWN4bHBiZGh0eWhwbWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzA4MDQsImV4cCI6MjA4ODE0NjgwNH0.lqYDt1yE8sEPx2xSF08k2OGtN3dFBbSJ8iy8LncRAYE';
   const QUIZ_ID = 'quiz-imob';
-  const SID     = Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+  const SID          = Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+  const QUIZ_LOAD_TS = Date.now();
   const BALDE_LABELS = { A:'Filtro', B:'Rastreamento', C:'Velocidade', D:'Origem', E:'Nutricao', X:'Desqualificado' };
 
   function sendEvent(step, idx) {
@@ -652,6 +656,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   // ── DATA ──────────────────────────────────────────────────────────────────
   function submitData() {
+    // C3 — honeypot: campo invisível preenchido = bot → simula sucesso sem salvar
+    if (document.getElementById('hp-site').value) { runProc(); return; }
+    // C3 — tempo mínimo 45s desde carregamento: menos = bot → simula sucesso sem salvar
+    if (Date.now() - QUIZ_LOAD_TS < 45000) { runProc(); return; }
+
     const name  = document.getElementById('in-name').value.trim();
     const phone = document.getElementById('in-phone').value.trim();
     const err   = document.getElementById('data-err');
