@@ -533,18 +533,38 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const ans = {};
 
   // ── TRACKING ──────────────────────────────────────────────────────────────
-  const APPS_URL = 'https://script.google.com/macros/s/AKfycbxVYsykWKrbsk3a0F_7lp2qckDJm05T7SQAFuJLMc2Xf08q6Xyg4fpUcsjSMEVTZ5CS/exec';
-  const QUIZ_ID  = 'quiz-imob';
-  const SID      = Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+  const SB_URL  = 'https://jvzdoycxlpbdhtyhpmcw.supabase.co';
+  const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2emRveWN4bHBiZGh0eWhwbWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzA4MDQsImV4cCI6MjA4ODE0NjgwNH0.lqYDt1yE8sEPx2xSF08k2OGtN3dFBbSJ8iy8LncRAYE';
+  const QUIZ_ID = 'quiz-imob';
+  const SID     = Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+  const BALDE_LABELS = { A:'Filtro', B:'Rastreamento', C:'Velocidade', D:'Origem', E:'Nutricao', X:'Desqualificado' };
 
   function sendEvent(step, idx) {
-    try { new Image().src = APPS_URL+'?type=event&qid='+QUIZ_ID+'&sid='+SID+'&step='+encodeURIComponent(step)+'&idx='+idx; } catch(_){}
+    fetch(SB_URL + '/rest/v1/eventos', {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ quiz_id: QUIZ_ID, session_id: SID, step: step, step_index: idx })
+    }).catch(function(){});
   }
   function sendLead() {
-    const p = new URLSearchParams({type:'lead',qid:QUIZ_ID,sid:SID,
-      name:ans.name||'',phone:ans.phone||'',email:ans.email||'',balde:ans.balde||''});
-    [1,2,3,4,5,6,7,8,9].forEach(n=>{ if(ans['q'+n]!==undefined) p.set('q'+n,ans['q'+n]); });
-    try { new Image().src = APPS_URL+'?'+p.toString(); } catch(_){}
+    fetch(SB_URL + '/rest/v1/leads', {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        quiz_id: QUIZ_ID, session_id: SID,
+        nome: ans.name||'', telefone: ans.phone||'', email: ans.email||'',
+        balde: ans.balde||'', balde_label: BALDE_LABELS[ans.balde]||'',
+        q1: ans.q1!==undefined?ans.q1:null,
+        q2: ans.q2!==undefined?ans.q2:null,
+        q3: ans.q3!==undefined?ans.q3:null,
+        q4: ans.q4!==undefined?ans.q4:null,
+        q5: ans.q5!==undefined?ans.q5:null,
+        q6: ans.q6!==undefined?ans.q6:null,
+        q7: ans.q7!==undefined?ans.q7:null,
+        q8: ans.q8!==undefined?ans.q8:null,
+        q9: ans.q9!==undefined?ans.q9:null
+      })
+    }).catch(function(){});
   }
 
   // ── SCREEN MANAGER ────────────────────────────────────────────────────────
