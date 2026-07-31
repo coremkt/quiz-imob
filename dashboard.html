@@ -163,7 +163,8 @@
     }
 
     /* ── KANBAN ── */
-    .kanban-wrap { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; padding-bottom:16px; }
+    .kanban-wrap { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; padding-bottom:16px; }
+    @media(max-width:600px) { .kanban-wrap { grid-template-columns:repeat(2,1fr); } }
     .k-col { display:flex; flex-direction:column; gap:8px; }
     .k-header { padding:10px 12px; border-radius:10px; display:flex; flex-direction:column; gap:4px; }
     .k-header-top { display:flex; align-items:center; justify-content:space-between; }
@@ -664,12 +665,14 @@ function renderFunil() {
       i===0  ? '#3B82F6' :
       `hsl(${220 - i*12},${75-i*5}%,${55-i*3}%)`;
 
-    let dropHTML = '';
+    let dropHTML;
     if (i > 0) {
       const prev    = fullFunnel[i-1];
       const dropPct = prev.count > 0 ? Math.round(step.count/prev.count*100) : 0;
       const cls     = dropPct===0 ? 'hf-drop-zero' : dropPct>=70 ? 'hf-drop-ok' : dropPct>=40 ? 'hf-drop-mid' : 'hf-drop-bad';
       dropHTML      = `<div class="hf-drop ${cls}">${dropPct}%</div>`;
+    } else {
+      dropHTML = `<div class="hf-drop" aria-hidden="true" style="visibility:hidden;">—</div>`;
     }
 
     const pctTotal = Math.round(step.count/baseCount*100);
