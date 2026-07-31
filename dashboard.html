@@ -623,9 +623,9 @@ function renderFunil() {
   document.getElementById('c-leads').textContent    = leads.count.toLocaleString('pt-BR');
   document.getElementById('c-ctas').textContent     = ctas.count.toLocaleString('pt-BR');
 
-  // KPIs do Pipeline CRM (via leadsData)
-  const pCallAgen  = leadsData.filter(l=>(l.status||'novo')==='call_agendada').length;
-  const pCallFeita = leadsData.filter(l=>(l.status||'novo')==='call_feita').length;
+  // KPIs do Pipeline CRM (via leadsData) — contagem cumulativa para cards
+  const pCallAgen  = leadsData.filter(l=>['call_agendada','call_feita','fechado','perdido'].includes(l.status||'novo')).length;
+  const pCallFeita = leadsData.filter(l=>['call_feita','fechado','perdido'].includes(l.status||'novo')).length;
   const pFechado   = leadsData.filter(l=>(l.status||'novo')==='fechado').length;
   const pPerdido   = leadsData.filter(l=>(l.status||'novo')==='perdido').length;
   const txDenom    = pFechado + pPerdido;
@@ -636,40 +636,60 @@ function renderFunil() {
   document.getElementById('p-perdido').textContent   = pPerdido.toLocaleString('pt-BR');
   document.getElementById('p-txfech').textContent    = txFech + '%';
 
-  // ── Funil visual horizontal (etapas do quiz até o CTA) ────────────────
+  // ── Funil visual horizontal — quiz (eventos) + pipeline (leads) ────────
   const KEY_STEPS = ['intro','quiz_start','formulario','form_enviado','resultado','cta_clicado'];
   const keyFunnel = funnel.filter(s => KEY_STEPS.includes(s.name))
     .sort((a,b) => KEY_STEPS.indexOf(a.name)-KEY_STEPS.indexOf(b.name));
-  const maxCount = Math.max(...keyFunnel.map(s=>s.count), 1);
+
+  // Etapas do pipeline (cumulativas: quem chegou nessa etapa ou além)
+  const pipelineSteps = [
+    { name:'call_confirmada', label:'Call Confirmada', count: pCallAgen  },
+    { name:'call_realizada',  label:'Call Realizada',  count: pCallFeita },
+    { name:'venda_ganha',     label:'Venda Ganha',     count: pFechado   },
+  ];
+  const fullFunnel = [...keyFunnel, ...pipelineSteps];
+  const maxCount = Math.max(...fullFunnel.map(s=>s.count), 1);
   const BAR_MAX  = 160;
+
+  // Cores: azul para quiz → gradiente para pipeline (verde/âmbar ao final)
+  const PIPELINE_COLORS = ['#A78BFA','#F59E0B','#22C55E'];
 
   const hf = document.getElementById('hfunnel');
   hf.innerHTML = '';
-  keyFunnel.forEach((step, i) => {
-    const barH   = Math.max(Math.round(step.count/maxCount*BAR_MAX), step.count>0?6:2);
-    const color  = step.count === 0 ? 'var(--s3)' :
+  fullFunnel.forEach((step, i) => {
+    const barH    = Math.max(Math.round(step.count/maxCount*BAR_MAX), step.count>0?6:2);
+    const isPipe  = i >= keyFunnel.length;
+    const pipeIdx = i - keyFunnel.length;
+    const color   = step.count === 0 ? 'var(--s3)' :
+      isPipe ? PIPELINE_COLORS[pipeIdx] :
       i===0 ? '#3B82F6' :
       `hsl(${220 - i*12},${75-i*5}%,${55-i*3}%)`;
 
     if (i > 0) {
-      const prev    = keyFunnel[i-1];
+      const prev    = fullFunnel[i-1];
       const dropPct = prev.count > 0 ? Math.round(step.count/prev.count*100) : 0;
       const cls     = dropPct===0 ? 'hf-drop-zero' : dropPct>=70 ? 'hf-drop-ok' : dropPct>=40 ? 'hf-drop-mid' : 'hf-drop-bad';
       const conn    = document.createElement('div');
       conn.className = 'hf-connector';
-      conn.innerHTML = `<div class="hf-drop ${cls}">${dropPct}%</div><div class="hf-arrow">→</div>`;
+      // Separador visual entre quiz e pipeline
+      if (i === keyFunnel.length) {
+        conn.innerHTML = `<div class="hf-drop ${cls}">${dropPct}%</div><div class="hf-arrow" style="color:#A78BFA;">→</div>`;
+      } else {
+        conn.innerHTML = `<div class="hf-drop ${cls}">${dropPct}%</div><div class="hf-arrow">→</div>`;
+      }
       hf.appendChild(conn);
     }
 
+    const pctTotal = fullFunnel[0].count > 0 ? Math.round(step.count/fullFunnel[0].count*100) : 0;
     const col = document.createElement('div');
     col.className = 'hf-step';
     col.innerHTML = `
       <div class="hf-bar-area">
-        <div class="hf-bar" data-h="${barH}px" style="height:2px;background:${color};"></div>
+        <div class="hf-bar" data-h="${barH}px" style="height:2px;background:${color};${isPipe?'border-top:2px solid '+color+';':''}"></div>
       </div>
       <div class="hf-count">${step.count.toLocaleString('pt-BR')}</div>
-      <div class="hf-label">${step.label}</div>
-      <div class="hf-pct-self" style="color:var(--text-3);">${step.pctS}% do total</div>
+      <div class="hf-label" style="color:${isPipe?color:'var(--text-3)'};">${step.label}</div>
+      <div class="hf-pct-self">${pctTotal}% do total</div>
     `;
     hf.appendChild(col);
   });
@@ -680,17 +700,30 @@ function renderFunil() {
     });
   }));
 
-  // ── Tabela detalhada (todas as etapas) ─────────────────────────────────
-  document.getElementById('funnel-body').innerHTML = funnel.map((s,i) => {
+  // ── Tabela detalhada (quiz events + pipeline steps) ───────────────────
+  const allTableRows = [
+    ...funnel.map((s,i,arr) => ({
+      ...s,
+      isKey: KEY_STEPS.includes(s.name),
+      isPipe: false,
+      pctFromIntro: Math.round(s.count/Math.max(funnel[0].count,1)*100)
+    })),
+    ...pipelineSteps.map((s,i) => {
+      const prev = i===0 ? (funnel.find(x=>x.name==='cta_clicado')||{count:0}) : pipelineSteps[i-1];
+      const pctP = prev.count>0 ? Math.round(s.count/prev.count*100) : 0;
+      return { ...s, isKey:true, isPipe:true, pctP, pctFromIntro: Math.round(s.count/Math.max(funnel[0].count,1)*100) };
+    })
+  ];
+  document.getElementById('funnel-body').innerHTML = allTableRows.map((s,i) => {
     const dropCls = i===0 ? '' : s.pctP>=80 ? 'drop-ok' : s.pctP>=50 ? 'drop-mid' : 'drop-bad';
-    const prevTxt = i===0 ? '—' : s.pctP+'%';
-    const isKey   = KEY_STEPS.includes(s.name);
-    return `<tr class="${isKey?'key-row':''}">
-      <td style="color:${isKey?'var(--text)':'var(--text-3)'};">
-        <span style="color:${isKey?'var(--accent)':'transparent'};margin-right:8px;">●</span>${s.label}
+    const prevTxt = i===0 ? '—' : (s.pctP||0)+'%';
+    const dotColor = s.isPipe ? '#A78BFA' : (s.isKey ? 'var(--accent)' : 'transparent');
+    return `<tr class="${s.isKey?'key-row':''}">
+      <td style="color:${s.isKey?'var(--text)':'var(--text-3)'};">
+        <span style="color:${dotColor};margin-right:8px;">●</span>${s.label}
       </td>
       <td style="color:var(--text);font-weight:600;">${s.count.toLocaleString('pt-BR')}</td>
-      <td style="color:var(--text-3);">${s.pctS}%</td>
+      <td style="color:var(--text-3);">${s.pctFromIntro}%</td>
       <td class="${dropCls}">${prevTxt}</td>
     </tr>`;
   }).join('');
