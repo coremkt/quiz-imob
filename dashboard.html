@@ -91,6 +91,25 @@
     .drop-ok  { color:var(--green) !important; font-weight:700; }
     .drop-mid { color:var(--amber) !important; font-weight:700; }
 
+    /* ── HORIZONTAL FUNNEL ── */
+    .hfunnel-wrap { padding:28px 20px 20px; overflow-x:auto; }
+    .hfunnel { display:flex; align-items:flex-end; min-width:max-content; gap:0; }
+    .hf-step { display:flex; flex-direction:column; align-items:center; gap:8px; min-width:90px; }
+    .hf-bar-area { display:flex; align-items:flex-end; justify-content:center; height:160px; width:100%; }
+    .hf-bar { width:60%; border-radius:6px 6px 0 0; min-height:4px; transition:height .8s cubic-bezier(.4,0,.2,1); }
+    .hf-count { font-size:15px; font-weight:800; color:var(--text); }
+    .hf-label { font-size:10px; font-weight:700; color:var(--text-3); text-align:center; text-transform:uppercase; letter-spacing:.06em; line-height:1.35; max-width:80px; }
+    .hf-pct-self { font-size:11px; font-weight:700; color:var(--text-3); }
+    .hf-connector { display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:32px; min-width:44px; gap:3px; }
+    .hf-arrow { color:var(--text-3); font-size:12px; }
+    .hf-drop { font-size:12px; font-weight:700; padding:2px 6px; border-radius:6px; }
+    .hf-drop-ok   { background:var(--green-d);  color:var(--green); }
+    .hf-drop-mid  { background:var(--amber-d);  color:var(--amber); }
+    .hf-drop-bad  { background:var(--red-d);    color:var(--red);   }
+    .hf-drop-zero { background:var(--s3);       color:var(--text-3); }
+    .conv-hero { grid-column:span 2; display:flex; flex-direction:column; justify-content:center; }
+    .conv-hero .card-value { font-size:48px; line-height:1; margin-bottom:6px; }
+
     /* ── BALDES ── */
     .baldes-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:16px 20px; }
     @media(max-width:600px){ .baldes-grid { grid-template-columns:repeat(2,1fr); } }
@@ -207,50 +226,61 @@
   <!-- ── FUNIL ── -->
   <div id="tab-funil" class="tab-content active" style="display:none;">
 
-    <div class="cards-grid">
-      <div class="card">
-        <div class="card-label">Iniciaram</div>
-        <div id="c-starts" class="card-value">—</div>
-        <div class="card-sub">quiz_start únicos</div>
+    <!-- CARDS RESUMO -->
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div class="card conv-hero" style="border-color:rgba(59,130,246,.25);background:linear-gradient(135deg,rgba(59,130,246,.1),var(--s1));">
+        <div class="card-label">Conversão total · visitante → CTA</div>
+        <div id="c-conv" class="card-value" style="color:var(--accent)">—</div>
+        <div id="c-conv-sub" class="card-sub" style="font-size:12px;margin-top:2px;"></div>
       </div>
       <div class="card">
-        <div class="card-label">Leads</div>
+        <div class="card-label">Iniciaram quiz</div>
+        <div id="c-starts" class="card-value">—</div>
+        <div class="card-sub">clicaram em Começar</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Leads gerados</div>
         <div id="c-leads" class="card-value" style="color:var(--accent)">—</div>
         <div class="card-sub">formulário enviado</div>
       </div>
       <div class="card">
-        <div class="card-label">Agendaram</div>
+        <div class="card-label">Clicaram CTA</div>
         <div id="c-ctas" class="card-value" style="color:var(--green)">—</div>
-        <div class="card-sub">clicaram no CTA</div>
-      </div>
-      <div class="card">
-        <div class="card-label">Conversão</div>
-        <div id="c-conv" class="card-value">—</div>
-        <div class="card-sub">início → CTA</div>
+        <div class="card-sub">foram para agendamento</div>
       </div>
     </div>
 
+    <!-- FUNIL VISUAL HORIZONTAL -->
     <div class="section" style="margin-bottom:20px;">
       <div class="section-header">
-        <h2>Funil · etapa por etapa</h2>
-        <p>Sessões únicas por step · % sobre o passo anterior</p>
+        <h2>Funil de conversão</h2>
+        <p>Barras proporcionais ao volume · % relativo à etapa anterior</p>
       </div>
+      <div class="hfunnel-wrap">
+        <div id="hfunnel" class="hfunnel"></div>
+      </div>
+    </div>
+
+    <!-- TODAS AS ETAPAS (detalhe) -->
+    <details class="section" style="margin-bottom:20px;">
+      <summary style="padding:16px 20px;cursor:pointer;font-size:13px;font-weight:700;color:var(--text-2);list-style:none;display:flex;align-items:center;gap:8px;">
+        <span id="details-arrow" style="transition:transform .2s;">▶</span> Todas as etapas (detalhe)
+      </summary>
       <table>
         <thead>
           <tr>
             <th style="text-align:left;">Etapa</th>
             <th>Sessões</th>
-            <th>% início</th>
+            <th>% do início</th>
             <th>vs anterior</th>
-            <th style="text-align:left;min-width:130px;">Barra</th>
           </tr>
         </thead>
         <tbody id="funnel-body"></tbody>
       </table>
-    </div>
+    </details>
 
     <div class="section">
-      <div class="section-header"><h2>Baldes · distribuição</h2></div>
+      <div class="section-header"><h2>Baldes · distribuição de leads</h2></div>
       <div class="baldes-grid" id="baldes-body"></div>
     </div>
 
@@ -494,33 +524,78 @@ function calcFunnel() {
   });
   const intro = (byStep['intro'] || byStep['quiz_start'] || new Set()).size || 1;
   return QUIZZES[currentQuiz].steps.map((step,i,arr) => {
-    const count   = byStep[step.name] ? byStep[step.name].size : 0;
-    const pctS    = Math.round(count/intro*100);
-    const prev    = i>0 && byStep[arr[i-1].name] ? byStep[arr[i-1].name].size : 0;
-    const pctP    = prev>0 ? Math.round(count/prev*100) : (i===0?100:0);
+    const count = byStep[step.name] ? byStep[step.name].size : 0;
+    const pctS  = Math.round(count/intro*100);
+    const prev  = i>0 && byStep[arr[i-1].name] ? byStep[arr[i-1].name].size : 0;
+    const pctP  = prev>0 ? Math.round(count/prev*100) : (i===0?100:0);
     return { ...step, count, pctS, pctP };
   });
 }
 
 function renderFunil() {
   const funnel = calcFunnel();
-  const max    = Math.max(...funnel.map(s=>s.count), 1);
-  const KEY    = new Set(['quiz_start','form_enviado','cta_clicado','formulario']);
+  const intro  = funnel.find(s=>s.name==='intro')        || {count:0};
   const starts = funnel.find(s=>s.name==='quiz_start')   || {count:0};
   const leads  = funnel.find(s=>s.name==='form_enviado') || {count:0};
   const ctas   = funnel.find(s=>s.name==='cta_clicado')  || {count:0};
-  const conv   = starts.count > 0 ? Math.round(ctas.count/starts.count*100) : 0;
+  const base   = intro.count || starts.count || 1;
+  const conv   = base > 0 ? (ctas.count/base*100).toFixed(1) : '0.0';
 
-  document.getElementById('c-starts').textContent = starts.count.toLocaleString('pt-BR');
-  document.getElementById('c-leads').textContent  = leads.count.toLocaleString('pt-BR');
-  document.getElementById('c-ctas').textContent   = ctas.count.toLocaleString('pt-BR');
-  document.getElementById('c-conv').textContent   = conv + '%';
+  document.getElementById('c-conv').textContent     = conv + '%';
+  document.getElementById('c-conv-sub').textContent = base.toLocaleString('pt-BR') + ' visitantes → ' + ctas.count.toLocaleString('pt-BR') + ' agendamentos';
+  document.getElementById('c-starts').textContent   = starts.count.toLocaleString('pt-BR');
+  document.getElementById('c-leads').textContent    = leads.count.toLocaleString('pt-BR');
+  document.getElementById('c-ctas').textContent     = ctas.count.toLocaleString('pt-BR');
 
+  // ── Funil visual horizontal (6 etapas-chave) ───────────────────────────
+  const KEY_STEPS = ['intro','quiz_start','formulario','form_enviado','resultado','cta_clicado'];
+  const keyFunnel = funnel.filter(s => KEY_STEPS.includes(s.name))
+    .sort((a,b) => KEY_STEPS.indexOf(a.name)-KEY_STEPS.indexOf(b.name));
+  const maxCount = Math.max(...keyFunnel.map(s=>s.count), 1);
+  const BAR_MAX  = 160;
+
+  const hf = document.getElementById('hfunnel');
+  hf.innerHTML = '';
+  keyFunnel.forEach((step, i) => {
+    const barH   = Math.max(Math.round(step.count/maxCount*BAR_MAX), step.count>0?6:2);
+    const color  = step.count === 0 ? 'var(--s3)' :
+      i===0 ? '#3B82F6' :
+      `hsl(${220 - i*12},${75-i*5}%,${55-i*3}%)`;
+
+    if (i > 0) {
+      const prev    = keyFunnel[i-1];
+      const dropPct = prev.count > 0 ? Math.round(step.count/prev.count*100) : 0;
+      const cls     = dropPct===0 ? 'hf-drop-zero' : dropPct>=70 ? 'hf-drop-ok' : dropPct>=40 ? 'hf-drop-mid' : 'hf-drop-bad';
+      const conn    = document.createElement('div');
+      conn.className = 'hf-connector';
+      conn.innerHTML = `<div class="hf-drop ${cls}">${dropPct}%</div><div class="hf-arrow">→</div>`;
+      hf.appendChild(conn);
+    }
+
+    const col = document.createElement('div');
+    col.className = 'hf-step';
+    col.innerHTML = `
+      <div class="hf-bar-area">
+        <div class="hf-bar" data-h="${barH}px" style="height:2px;background:${color};"></div>
+      </div>
+      <div class="hf-count">${step.count.toLocaleString('pt-BR')}</div>
+      <div class="hf-label">${step.label}</div>
+      <div class="hf-pct-self" style="color:var(--text-3);">${step.pctS}% do total</div>
+    `;
+    hf.appendChild(col);
+  });
+
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll('#hfunnel .hf-bar').forEach(b=>{
+      b.style.height = b.dataset.h;
+    });
+  }));
+
+  // ── Tabela detalhada (todas as etapas) ─────────────────────────────────
   document.getElementById('funnel-body').innerHTML = funnel.map((s,i) => {
-    const barPct    = Math.round(s.count/max*100);
-    const isKey     = KEY.has(s.name);
-    const dropCls   = i===0 ? '' : s.pctP>=80 ? 'drop-ok' : s.pctP>=50 ? 'drop-mid' : 'drop-bad';
-    const prevTxt   = i===0 ? '—' : s.pctP+'%';
+    const dropCls = i===0 ? '' : s.pctP>=80 ? 'drop-ok' : s.pctP>=50 ? 'drop-mid' : 'drop-bad';
+    const prevTxt = i===0 ? '—' : s.pctP+'%';
+    const isKey   = KEY_STEPS.includes(s.name);
     return `<tr class="${isKey?'key-row':''}">
       <td style="color:${isKey?'var(--text)':'var(--text-3)'};">
         <span style="color:${isKey?'var(--accent)':'transparent'};margin-right:8px;">●</span>${s.label}
@@ -528,14 +603,17 @@ function renderFunil() {
       <td style="color:var(--text);font-weight:600;">${s.count.toLocaleString('pt-BR')}</td>
       <td style="color:var(--text-3);">${s.pctS}%</td>
       <td class="${dropCls}">${prevTxt}</td>
-      <td><div class="bar-track"><div class="bar-fill" data-w="${barPct}%" style="width:0%;background:${isKey?'var(--accent)':'var(--s3)'}"></div></div></td>
     </tr>`;
   }).join('');
 
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    document.querySelectorAll('#funnel-body .bar-fill').forEach(b=>{ b.style.width=b.dataset.w; });
-  }));
+  // toggle arrow no details
+  const det = document.querySelector('details.section');
+  if (det) det.addEventListener('toggle', ()=>{
+    const arr = document.getElementById('details-arrow');
+    if (arr) arr.style.transform = det.open ? 'rotate(90deg)' : '';
+  }, {once:false});
 
+  // ── Baldes ─────────────────────────────────────────────────────────────
   const counts = {};
   leadsData.forEach(l=>{ const b=l.balde||'X'; counts[b]=(counts[b]||0)+1; });
   const total = leadsData.length || 1;
