@@ -286,7 +286,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     { id:'q8', text:'Para o diagnóstico fazer sentido pro tamanho da sua operação — qual foi o faturamento médio mensal da sua imobiliária nos últimos 3 meses?',
       opts:['Menos de R$30.000/mês','Entre R$30.000 e R$50.000/mês','Entre R$50.000 e R$100.000/mês','Entre R$100.000 e R$500.000/mês','Entre R$500.000 e R$1.000.000/mês','Acima de R$1.000.000/mês'] },
     { id:'q9', text:'Com base no que você respondeu, parece que há espaço real para melhoria. Você está buscando resolver isso...',
-      opts:['Agora — quero previsibilidade de leads e visitas nos próximos 30 dias','Em breve — estou pesquisando opções para os próximos meses','Ainda estou entendendo o problema — preciso de mais informações'] }
+      opts:['Agora — quero previsibilidade de leads e visitas nos próximos 30 dias','Quero resolver isso nas próximas 2 a 4 semanas','Ainda estou entendendo o problema — preciso de mais informações'] }
   ];
 
   // ── RECLAME AQUI QUOTES (validação — comuns a todos os baldes) ───────────
@@ -641,7 +641,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const q2=ans.q2, q3=ans.q3, q4=ans.q4, q6=ans.q6, q8=ans.q8, q9=ans.q9;
     if (q8===0)            return 'X'; // < R$30k
     if (q9===2)            return 'X'; // ainda entendo
-    if (q9===1)            return 'E'; // em breve
     if (q2===0||q2===2)    return 'D'; // portais / indicação
     if (q4===2||q3===3)    return 'B'; // não sabe / não acompanha
     if (q4===0||q6===0)    return 'A'; // filtro
