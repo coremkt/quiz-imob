@@ -622,6 +622,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     ans.name=name; ans.phone=phone;
     ans.email=document.getElementById('in-email').value.trim();
     const balde = calcBalde(); ans.balde = balde;
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ 'event': 'lead' });
     runProc();
   }
 
