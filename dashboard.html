@@ -6,16 +6,12 @@
   <title>Dashboard · CORE MKT</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } } }
-    }
-  </script>
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans','sans-serif'] } } } }</script>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     body { background: #F8FAFC; }
-    .bar-track { background: #E2E8F0; border-radius: 99px; height: 8px; overflow: hidden; }
-    .bar-fill  { height: 100%; border-radius: 99px; transition: width 0.7s ease; }
+    .bar-track { background:#E2E8F0; border-radius:99px; height:8px; overflow:hidden; }
+    .bar-fill  { height:100%; border-radius:99px; transition:width 0.7s ease; }
     .tag { display:inline-flex; align-items:center; padding:2px 10px; border-radius:99px; font-size:12px; font-weight:700; }
     .tag-a { background:#EFF6FF; color:#0369A1; }
     .tag-b { background:#F3F0FF; color:#6D28D9; }
@@ -23,15 +19,42 @@
     .tag-d { background:#FFF7ED; color:#C2410C; }
     .tag-e { background:#F9FAFB; color:#6B7280; }
     .tag-x { background:#FEF2F2; color:#DC2626; }
-    tbody tr:hover td { background: #F1F5F9; }
-    .drop-bad  { color: #DC2626; font-weight: 700; }
-    .drop-ok   { color: #15803D; font-weight: 600; }
-    .drop-mid  { color: #D97706; font-weight: 600; }
+    tbody tr:hover td { background:#F1F5F9; }
+    .drop-bad  { color:#DC2626; font-weight:700; }
+    .drop-ok   { color:#15803D; font-weight:600; }
+    .drop-mid  { color:#D97706; font-weight:600; }
+    select.status-sel { font-size:11px; border-radius:6px; padding:2px 6px; border:1px solid #E2E8F0; background:#fff; cursor:pointer; }
   </style>
 </head>
 <body class="font-sans text-slate-800">
 
-  <!-- ── HEADER ───────────────────────────────────────────────────────────── -->
+  <!-- ── LOGIN ─────────────────────────────────────────────────────────────── -->
+  <div id="login-screen" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl">
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">CORE MKT</p>
+      <h1 class="text-xl font-extrabold text-slate-800 mb-6">Dashboard</h1>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-slate-600 mb-1.5">E-mail</label>
+          <input id="login-email" type="email" placeholder="seu@email.com" autofocus
+            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-600 mb-1.5">Senha</label>
+          <input id="login-pass" type="password" placeholder="••••••••"
+            onkeydown="if(event.key==='Enter') doLogin()"
+            class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <p id="login-err" class="text-red-500 text-sm hidden">E-mail ou senha incorretos.</p>
+        <button onclick="doLogin()"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition-colors">
+          Entrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HEADER ─────────────────────────────────────────────────────────────── -->
   <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between gap-4 sticky top-0 z-10">
     <div class="flex items-center gap-3">
       <span class="text-slate-400 text-sm font-semibold uppercase tracking-widest">CORE MKT</span>
@@ -46,31 +69,34 @@
         class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition-colors">
         ↻ Atualizar
       </button>
+      <button onclick="doLogout()"
+        class="text-xs font-semibold text-slate-400 hover:text-slate-600 px-3 py-1.5 rounded-lg transition-colors">
+        Sair
+      </button>
     </div>
   </header>
 
-  <!-- ── CONTEÚDO ──────────────────────────────────────────────────────────── -->
+  <!-- ── CONTEÚDO ───────────────────────────────────────────────────────────── -->
   <main class="max-w-5xl mx-auto px-4 py-8 space-y-8">
 
     <div id="state-loading" class="text-center py-20 text-slate-400">
       <p class="text-lg font-semibold mb-2">Carregando dados...</p>
-      <p class="text-sm">Buscando no Apps Script</p>
+      <p class="text-sm">Conectando ao Supabase</p>
     </div>
 
     <div id="state-empty" class="hidden text-center py-20 text-slate-400">
       <p class="text-lg font-semibold mb-2">Ainda sem dados</p>
-      <p class="text-sm">O quiz ainda não recebeu visitas, ou o Apps Script precisa ser atualizado e reimplantado.</p>
+      <p class="text-sm">O quiz ainda não recebeu visitas.</p>
     </div>
 
     <div id="state-error" class="hidden text-center py-20">
-      <p class="text-lg font-semibold text-red-600 mb-2">Não foi possível carregar os dados</p>
+      <p class="text-lg font-semibold text-red-600 mb-2">Erro ao carregar dados</p>
       <p id="err-msg" class="text-sm text-slate-500 mb-4 max-w-md mx-auto"></p>
-      <p class="text-xs text-slate-400">Verifique se o Apps Script foi atualizado com o código novo e reimplantado.</p>
     </div>
 
     <div id="content" class="hidden space-y-8">
 
-      <!-- ── CARDS ──────────────────────────────────────────────────────── -->
+      <!-- ── CARDS ──────────────────────────────────────────────────────────── -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl p-5 border border-slate-100">
           <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Iniciaram</p>
@@ -94,7 +120,7 @@
         </div>
       </div>
 
-      <!-- ── FUNIL ──────────────────────────────────────────────────────── -->
+      <!-- ── FUNIL ──────────────────────────────────────────────────────────── -->
       <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100">
           <h2 class="font-extrabold text-slate-800">Funil · etapa por etapa</h2>
@@ -116,7 +142,7 @@
         </div>
       </div>
 
-      <!-- ── BALDES ─────────────────────────────────────────────────────── -->
+      <!-- ── BALDES ─────────────────────────────────────────────────────────── -->
       <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100">
           <h2 class="font-extrabold text-slate-800">Baldes · distribuição de leads</h2>
@@ -124,7 +150,7 @@
         <div id="baldes-body" class="px-6 py-5 grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
       </div>
 
-      <!-- ── LEADS ──────────────────────────────────────────────────────── -->
+      <!-- ── LEADS ──────────────────────────────────────────────────────────── -->
       <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-4 flex-wrap">
           <div>
@@ -154,8 +180,9 @@
                 <th class="px-4 py-3 text-left font-semibold">Nome</th>
                 <th class="px-4 py-3 text-left font-semibold">Telefone</th>
                 <th class="px-4 py-3 text-left font-semibold">Balde</th>
+                <th class="px-4 py-3 text-left font-semibold">Status</th>
                 <th class="px-4 py-3 text-left font-semibold">Corretores</th>
-                <th class="px-4 py-3 text-left font-semibold">Canal principal</th>
+                <th class="px-4 py-3 text-left font-semibold">Canal</th>
                 <th class="px-4 py-3 text-left font-semibold">Faturamento</th>
                 <th class="px-4 py-3 text-left font-semibold">Urgência</th>
               </tr>
@@ -168,12 +195,13 @@
         </div>
       </div>
 
-    </div><!-- /content -->
+    </div>
   </main>
 
   <script>
   // ── CONFIG ────────────────────────────────────────────────────────────────
-  const APPS_URL = 'https://script.google.com/macros/s/AKfycbxVYsykWKrbsk3a0F_7lp2qckDJm05T7SQAFuJLMc2Xf08q6Xyg4fpUcsjSMEVTZ5CS/exec';
+  const SB_URL = 'https://jvzdoycxlpbdhtyhpmcw.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2emRveWN4bHBiZGh0eWhwbWN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NzA4MDQsImV4cCI6MjA4ODE0NjgwNH0.lqYDt1yE8sEPx2xSF08k2OGtN3dFBbSJ8iy8LncRAYE';
 
   const QUIZZES = {
     'quiz-imob': {
@@ -198,49 +226,109 @@
         { name:'cta_clicado',  label:'Clicou no CTA →'    }
       ]
     }
-    // futuros quizzes: 'quiz-id': { label:'...', steps:[...] }
   };
 
   const Q_OPTIONS = {
-    Q1: ['Só eu / autônomo','2 a 3 corretores','4 a 6 corretores','Mais de 6'],
-    Q2: ['Portais (Zap, OLX...)','Meta Ads','Indicações','Vários canais'],
-    Q3: ['Corretor responde quando pode','Lead preenche algo antes','Cada corretor tem seu jeito','Não acompanho de perto'],
-    Q4: ['< 20% têm perfil','20%–40%','Nunca medi','> 50%'],
-    Q5: ['"Gastei mas não sei onde"','"Plataforma não entrega"','"Corretor não converte"','"Desconfio de promessas"'],
-    Q6: ['Sim — frequente','Às vezes','Raramente','Não acompanho'],
-    Q7: ['Continuo gastando sem saber','Corretor vai desanimar','Perco mercado','Fico travado no mesmo tamanho'],
-    Q8: ['< R$30k','R$30k–R$50k','R$50k–R$100k','R$100k–R$500k','R$500k–R$1M','> R$1M'],
-    Q9: ['Agora — 30 dias','Em 2 a 4 semanas','Ainda entendendo']
+    q1: ['Só eu / autônomo','2 a 3 corretores','4 a 6 corretores','Mais de 6'],
+    q2: ['Portais (Zap, OLX...)','Meta Ads','Indicações','Vários canais'],
+    q3: ['Corretor responde quando pode','Lead preenche algo antes','Cada corretor seu jeito','Não acompanho'],
+    q4: ['< 20% têm perfil','20%–40%','Nunca medi','> 50%'],
+    q5: ['"Gastei sem saber onde"','"Plataforma não entrega"','"Corretor não converte"','"Desconfio de promessas"'],
+    q6: ['Sim — frequente','Às vezes','Raramente','Não acompanho'],
+    q7: ['Gasto sem saber','Corretor vai desanimar','Perco mercado','Fico travado'],
+    q8: ['< R$30k','R$30k–R$50k','R$50k–R$100k','R$100k–R$500k','R$500k–R$1M','> R$1M'],
+    q9: ['Agora — 30 dias','Em 2 a 4 semanas','Ainda entendendo']
   };
 
   const BALDE_COLOR = { A:'tag-a', B:'tag-b', C:'tag-c', D:'tag-d', E:'tag-e', X:'tag-x' };
   const BALDE_LABEL = { A:'Filtro', B:'Rastreamento', C:'Velocidade', D:'Origem', E:'Nutrição', X:'Desqualificado' };
+  const STATUS_OPTS = ['novo','contatado','call_agendada','call_feita','fechado','perdido'];
+  const STATUS_COLOR = {
+    novo:'#6B7280', contatado:'#0369A1', call_agendada:'#7C3AED',
+    call_feita:'#D97706', fechado:'#15803D', perdido:'#DC2626'
+  };
 
-  // ── ESTADO ────────────────────────────────────────────────────────────────
+  // ── AUTH ──────────────────────────────────────────────────────────────────
+  let authToken = sessionStorage.getItem('sb_token') || null;
+
   let currentQuiz = null;
   let eventosData = [];
   let leadsData   = [];
 
-  // ── INIT ──────────────────────────────────────────────────────────────────
   window.addEventListener('DOMContentLoaded', () => {
+    if (!authToken) { showLogin(); return; }
+    initDashboard();
+  });
+
+  function showLogin() {
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('state-loading').classList.add('hidden');
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    const err   = document.getElementById('login-err');
+    err.classList.add('hidden');
+    try {
+      const res = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.access_token) { err.classList.remove('hidden'); return; }
+      authToken = data.access_token;
+      sessionStorage.setItem('sb_token', authToken);
+      document.getElementById('login-screen').classList.add('hidden');
+      initDashboard();
+    } catch(e) { err.classList.remove('hidden'); }
+  }
+
+  function doLogout() {
+    sessionStorage.removeItem('sb_token');
+    authToken = null;
+    showLogin();
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  function initDashboard() {
     const sel = document.getElementById('quiz-select');
+    sel.innerHTML = '';
     Object.entries(QUIZZES).forEach(([id, q]) => {
       const opt = document.createElement('option');
       opt.value = id; opt.textContent = q.label;
       sel.appendChild(opt);
     });
     loadQuiz(Object.keys(QUIZZES)[0]);
-  });
+  }
 
+  // ── SUPABASE FETCH ────────────────────────────────────────────────────────
+  async function sbFetch(table, params) {
+    const qs  = new URLSearchParams(params).toString();
+    const url = SB_URL + '/rest/v1/' + table + '?' + qs;
+    const res = await fetch(url, {
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + authToken,
+        'Accept': 'application/json'
+      }
+    });
+    if (res.status === 401) { doLogout(); throw new Error('Sessão expirada. Faça login novamente.'); }
+    if (!res.ok) throw new Error('Erro ' + res.status + ' ao buscar ' + table);
+    return res.json();
+  }
+
+  // ── LOAD ──────────────────────────────────────────────────────────────────
   function loadQuiz(quizId) {
     currentQuiz = quizId;
     setState('loading');
     Promise.all([
-      scriptFetch('eventos'),
-      scriptFetch('leads')
-    ]).then(([evRaw, ldRaw]) => {
-      eventosData = (evRaw.rows || []).filter(r => r.QuizID === quizId);
-      leadsData   = (ldRaw.rows || []).filter(r => r.QuizID === quizId);
+      sbFetch('eventos', { quiz_id: 'eq.' + quizId, select: 'session_id,step,step_index', limit: 50000 }),
+      sbFetch('leads',   { quiz_id: 'eq.' + quizId, select: '*', order: 'criado_em.desc', limit: 10000 })
+    ]).then(([evRows, ldRows]) => {
+      eventosData = evRows || [];
+      leadsData   = ldRows || [];
       document.getElementById('last-updated').textContent =
         'Atualizado às ' + new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
       if (eventosData.length === 0 && leadsData.length === 0) { setState('empty'); return; }
@@ -259,39 +347,7 @@
     loadQuiz(currentQuiz);
     const btn = document.getElementById('btn-refresh');
     btn.textContent = '↻ Atualizando...';
-    setTimeout(() => { btn.textContent = '↻ Atualizar'; }, 3000);
-  }
-
-  // ── APPS SCRIPT FETCH (JSONP — funciona de file:// e https://) ───────────
-  function scriptFetch(sheet) {
-    return new Promise((resolve, reject) => {
-      const cbName = '__cb_' + Math.random().toString(36).slice(2);
-      const url    = APPS_URL + '?type=export&sheet=' + encodeURIComponent(sheet) + '&cb=' + cbName;
-
-      const timer = setTimeout(() => {
-        delete window[cbName];
-        reject(new Error(
-          'Tempo limite excedido ao buscar "' + sheet + '". ' +
-          'Verifique se o Apps Script foi atualizado e reimplantado.'
-        ));
-      }, 12000);
-
-      window[cbName] = (data) => {
-        clearTimeout(timer);
-        delete window[cbName];
-        if (data && data.error) reject(new Error('Apps Script: ' + data.error));
-        else resolve(data || { rows: [] });
-      };
-
-      const s = document.createElement('script');
-      s.src = url;
-      s.onerror = () => {
-        clearTimeout(timer);
-        delete window[cbName];
-        reject(new Error('Falha ao conectar. Verifique se a URL do Apps Script está correta.'));
-      };
-      document.head.appendChild(s);
-    });
+    setTimeout(() => { btn.textContent = '↻ Atualizar'; }, 2000);
   }
 
   // ── UI STATE ──────────────────────────────────────────────────────────────
@@ -306,16 +362,14 @@
   function calcFunnel(steps) {
     const byStep = {};
     eventosData.forEach(e => {
-      if (!e.Step) return;
-      if (!byStep[e.Step]) byStep[e.Step] = new Set();
-      if (e.SessionID) byStep[e.Step].add(e.SessionID);
+      if (!e.step) return;
+      if (!byStep[e.step]) byStep[e.step] = new Set();
+      if (e.session_id) byStep[e.step].add(e.session_id);
     });
-
     const introCount = (byStep['intro'] || byStep['quiz_start'] || new Set()).size || 1;
-
     return steps.map((step, i) => {
       const count    = byStep[step.name] ? byStep[step.name].size : 0;
-      const pctStart = introCount > 0 ? Math.round(count / introCount * 100) : 0;
+      const pctStart = Math.round(count / introCount * 100);
       const prevSize = i > 0 && byStep[steps[i-1].name] ? byStep[steps[i-1].name].size : 0;
       const pctPrev  = prevSize > 0 ? Math.round(count / prevSize * 100) : (i === 0 ? 100 : 0);
       return { ...step, count, pctStart, pctPrev };
@@ -323,13 +377,11 @@
   }
 
   function renderCards() {
-    const cfg    = QUIZZES[currentQuiz];
-    const funnel = calcFunnel(cfg.steps);
-    const starts = funnel.find(s => s.name === 'quiz_start')   || { count: 0 };
-    const leads  = funnel.find(s => s.name === 'form_enviado') || { count: 0 };
-    const ctas   = funnel.find(s => s.name === 'cta_clicado')  || { count: 0 };
+    const funnel = calcFunnel(QUIZZES[currentQuiz].steps);
+    const starts = funnel.find(s => s.name === 'quiz_start')   || { count:0 };
+    const leads  = funnel.find(s => s.name === 'form_enviado') || { count:0 };
+    const ctas   = funnel.find(s => s.name === 'cta_clicado')  || { count:0 };
     const conv   = starts.count > 0 ? Math.round(ctas.count / starts.count * 100) : 0;
-
     document.getElementById('card-starts').textContent = starts.count.toLocaleString('pt-BR');
     document.getElementById('card-leads').textContent  = leads.count.toLocaleString('pt-BR');
     document.getElementById('card-ctas').textContent   = ctas.count.toLocaleString('pt-BR');
@@ -337,66 +389,52 @@
   }
 
   function renderFunnel() {
-    const cfg    = QUIZZES[currentQuiz];
-    const funnel = calcFunnel(cfg.steps);
-    const max    = Math.max(...funnel.map(s => s.count), 1);
-    const KEY    = new Set(['quiz_start','form_enviado','cta_clicado','formulario']);
-
+    const funnel = calcFunnel(QUIZZES[currentQuiz].steps);
+    const max  = Math.max(...funnel.map(s => s.count), 1);
+    const KEY  = new Set(['quiz_start','form_enviado','cta_clicado','formulario']);
     document.getElementById('funnel-body').innerHTML = funnel.map((step, i) => {
       const barPct    = Math.round(step.count / max * 100);
       const isKey     = KEY.has(step.name);
       const dropClass = i === 0 ? '' : step.pctPrev >= 80 ? 'drop-ok' : step.pctPrev >= 50 ? 'drop-mid' : 'drop-bad';
       const prevText  = i === 0 ? '—' : step.pctPrev + '%';
-
       return `<tr class="border-b border-slate-50 ${isKey ? 'bg-blue-50/40' : ''}">
         <td class="px-6 py-3 whitespace-nowrap ${isKey ? 'font-semibold text-slate-800' : 'text-slate-500'}">
           <span class="mr-1.5 ${isKey ? 'text-blue-400' : 'text-transparent'}">●</span>${step.label}
         </td>
-        <td class="px-4 py-3 text-right font-semibold tabular-nums text-slate-700">
-          ${step.count.toLocaleString('pt-BR')}
-        </td>
+        <td class="px-4 py-3 text-right font-semibold tabular-nums text-slate-700">${step.count.toLocaleString('pt-BR')}</td>
         <td class="px-4 py-3 text-right text-slate-400 tabular-nums">${step.pctStart}%</td>
         <td class="px-4 py-3 text-right tabular-nums ${dropClass}">${prevText}</td>
         <td class="px-6 py-3 min-w-[160px]">
           <div class="bar-track">
-            <div class="bar-fill" style="width:0%; background:${isKey ? '#0369A1' : '#94A3B8'};"
-                 data-w="${barPct}%"></div>
+            <div class="bar-fill" style="width:0%;background:${isKey ? '#0369A1' : '#94A3B8'};" data-w="${barPct}%"></div>
           </div>
         </td>
       </tr>`;
     }).join('');
-
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      document.querySelectorAll('#funnel-body .bar-fill').forEach(b => {
-        b.style.width = b.dataset.w;
-      });
+      document.querySelectorAll('#funnel-body .bar-fill').forEach(b => { b.style.width = b.dataset.w; });
     }));
   }
 
   // ── BALDES ────────────────────────────────────────────────────────────────
   function renderBaldes() {
     const counts = {};
-    leadsData.forEach(l => { const b = l.Balde || 'X'; counts[b] = (counts[b] || 0) + 1; });
+    leadsData.forEach(l => { const b = l.balde || 'X'; counts[b] = (counts[b] || 0) + 1; });
     const total = leadsData.length || 1;
-
     document.getElementById('baldes-body').innerHTML = Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
+      .sort((a,b) => b[1]-a[1])
       .map(([balde, n]) => `
         <div class="flex items-center gap-3">
-          <span class="tag ${BALDE_COLOR[balde] || 'tag-e'} shrink-0">
-            ${BALDE_LABEL[balde] || balde}
-          </span>
+          <span class="tag ${BALDE_COLOR[balde]||'tag-e'} shrink-0">${BALDE_LABEL[balde]||balde}</span>
           <div class="flex-1">
             <div class="flex justify-between text-xs text-slate-500 mb-1">
-              <span>${n} lead${n > 1 ? 's' : ''}</span>
-              <span>${Math.round(n / total * 100)}%</span>
+              <span>${n} lead${n>1?'s':''}</span><span>${Math.round(n/total*100)}%</span>
             </div>
             <div class="bar-track">
-              <div class="bar-fill bg-slate-400" data-w="${Math.round(n / total * 100)}%" style="width:0%"></div>
+              <div class="bar-fill bg-slate-400" data-w="${Math.round(n/total*100)}%" style="width:0%"></div>
             </div>
           </div>
         </div>`).join('');
-
     requestAnimationFrame(() => requestAnimationFrame(() => {
       document.querySelectorAll('#baldes-body .bar-fill').forEach(b => { b.style.width = b.dataset.w; });
     }));
@@ -405,34 +443,64 @@
   // ── LEADS ─────────────────────────────────────────────────────────────────
   function renderLeads() {
     const filterBalde = document.getElementById('filter-balde').value;
-    const search      = (document.getElementById('search-lead').value || '').toLowerCase().trim();
-
+    const search      = (document.getElementById('search-lead').value||'').toLowerCase().trim();
     const rows = leadsData.filter(l => {
-      if (filterBalde && l.Balde !== filterBalde) return false;
-      if (search && !(l.Nome || '').toLowerCase().includes(search)) return false;
+      if (filterBalde && l.balde !== filterBalde) return false;
+      if (search && !(l.nome||'').toLowerCase().includes(search)) return false;
       return true;
     });
-
     document.getElementById('leads-empty').classList.toggle('hidden', rows.length > 0);
-
     const opt = (key, val) => {
       const idx = parseInt(val);
-      return (!isNaN(idx) && Q_OPTIONS[key] && Q_OPTIONS[key][idx]) ? Q_OPTIONS[key][idx] : (val || '—');
+      return (!isNaN(idx) && Q_OPTIONS[key] && Q_OPTIONS[key][idx]) ? Q_OPTIONS[key][idx] : (val!==null&&val!==undefined?String(val):'—');
     };
-
     document.getElementById('leads-body').innerHTML = rows.map(l => {
-      const bTag = `<span class="tag ${BALDE_COLOR[l.Balde] || 'tag-e'}">${BALDE_LABEL[l.Balde] || l.Balde || '—'}</span>`;
+      const bTag   = `<span class="tag ${BALDE_COLOR[l.balde]||'tag-e'}">${BALDE_LABEL[l.balde]||l.balde||'—'}</span>`;
+      const status = l.status || 'novo';
+      const color  = STATUS_COLOR[status] || '#6B7280';
+      const selOpts = STATUS_OPTS.map(s =>
+        `<option value="${s}" ${s===status?'selected':''}>${s.replace('_',' ')}</option>`
+      ).join('');
+      const date = l.criado_em ? new Date(l.criado_em).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
       return `<tr class="border-b border-slate-50">
-        <td class="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">${l.Timestamp ? l.Timestamp.slice(0,16) : '—'}</td>
-        <td class="px-4 py-3 font-semibold text-slate-800 whitespace-nowrap">${l.Nome || '—'}</td>
-        <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${l.Telefone || '—'}</td>
+        <td class="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">${date}</td>
+        <td class="px-4 py-3 font-semibold text-slate-800 whitespace-nowrap">${l.nome||'—'}</td>
+        <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${l.telefone||'—'}</td>
         <td class="px-4 py-3">${bTag}</td>
-        <td class="px-4 py-3 text-xs text-slate-500">${opt('Q1', l.Q1)}</td>
-        <td class="px-4 py-3 text-xs text-slate-500">${opt('Q2', l.Q2)}</td>
-        <td class="px-4 py-3 text-xs font-semibold text-slate-700 whitespace-nowrap">${opt('Q8', l.Q8)}</td>
-        <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">${opt('Q9', l.Q9)}</td>
+        <td class="px-4 py-3">
+          <select class="status-sel" style="color:${color};" onchange="updateStatus('${l.id}', this.value, this)">
+            ${selOpts}
+          </select>
+        </td>
+        <td class="px-4 py-3 text-xs text-slate-500">${opt('q1',l.q1)}</td>
+        <td class="px-4 py-3 text-xs text-slate-500">${opt('q2',l.q2)}</td>
+        <td class="px-4 py-3 text-xs font-semibold text-slate-700 whitespace-nowrap">${opt('q8',l.q8)}</td>
+        <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">${opt('q9',l.q9)}</td>
       </tr>`;
     }).join('');
+  }
+
+  // ── UPDATE STATUS ─────────────────────────────────────────────────────────
+  async function updateStatus(id, status, sel) {
+    sel.disabled = true;
+    try {
+      const res = await fetch(SB_URL + '/rest/v1/leads?id=eq.' + id, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SB_KEY,
+          'Authorization': 'Bearer ' + authToken,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ status, atualizado_em: new Date().toISOString() })
+      });
+      if (!res.ok) throw new Error('status ' + res.status);
+      sel.style.color = STATUS_COLOR[status] || '#6B7280';
+      const lead = leadsData.find(l => l.id === id);
+      if (lead) lead.status = status;
+    } catch(e) {
+      alert('Erro ao atualizar: ' + e.message);
+    } finally { sel.disabled = false; }
   }
   </script>
 </body>
