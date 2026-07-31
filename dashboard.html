@@ -229,7 +229,7 @@
     <!-- CARDS RESUMO -->
     <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
       <div class="card conv-hero" style="border-color:rgba(59,130,246,.25);background:linear-gradient(135deg,rgba(59,130,246,.1),var(--s1));">
-        <div class="card-label">Conversão total · visitante → CTA</div>
+        <div class="card-label">Conversão total · visitante → MQL</div>
         <div id="c-conv" class="card-value" style="color:var(--accent)">—</div>
         <div id="c-conv-sub" class="card-sub" style="font-size:12px;margin-top:2px;"></div>
       </div>
@@ -239,14 +239,14 @@
         <div class="card-sub">clicaram em Começar</div>
       </div>
       <div class="card">
-        <div class="card-label">Leads gerados</div>
+        <div class="card-label">Leads</div>
         <div id="c-leads" class="card-value" style="color:var(--accent)">—</div>
-        <div class="card-sub">formulário enviado</div>
+        <div class="card-sub">preencheram o formulário</div>
       </div>
       <div class="card">
-        <div class="card-label">Clicaram CTA</div>
+        <div class="card-label">MQL</div>
         <div id="c-ctas" class="card-value" style="color:var(--green)">—</div>
-        <div class="card-sub">foram para agendamento</div>
+        <div class="card-sub">avançaram para agendamento</div>
       </div>
     </div>
 
@@ -542,7 +542,7 @@ function renderFunil() {
   const conv   = base > 0 ? (ctas.count/base*100).toFixed(1) : '0.0';
 
   document.getElementById('c-conv').textContent     = conv + '%';
-  document.getElementById('c-conv-sub').textContent = base.toLocaleString('pt-BR') + ' visitantes → ' + ctas.count.toLocaleString('pt-BR') + ' agendamentos';
+  document.getElementById('c-conv-sub').textContent = base.toLocaleString('pt-BR') + ' visitantes → ' + ctas.count.toLocaleString('pt-BR') + ' MQL';
   document.getElementById('c-starts').textContent   = starts.count.toLocaleString('pt-BR');
   document.getElementById('c-leads').textContent    = leads.count.toLocaleString('pt-BR');
   document.getElementById('c-ctas').textContent     = ctas.count.toLocaleString('pt-BR');
