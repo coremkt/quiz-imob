@@ -374,7 +374,8 @@ const QUIZZES = {
       { name:'formulario',   label:'Viu formulário'      },
       { name:'form_enviado', label:'Enviou formulário'   },
       { name:'resultado',    label:'Viu resultado'       },
-      { name:'cta_clicado',  label:'Clicou no CTA →'    }
+      { name:'cta_clicado',  label:'Clicou no CTA →'    },
+      { name:'agendamento',  label:'Agendamento Realizado' }
     ]
   }
 };
@@ -398,12 +399,12 @@ const Q_OPTIONS = [
 const BALDE_LABEL = { A:'Filtro', B:'Rastreamento', C:'Velocidade', D:'Origem', E:'Nutrição', X:'Desqualificado' };
 
 const STATUSES = [
-  { key:'novo',          label:'Novo',          color:'#64748B' },
-  { key:'contatado',     label:'Contatado',      color:'#3B82F6' },
-  { key:'call_agendada', label:'Call Agendada',  color:'#A78BFA' },
-  { key:'call_feita',    label:'Call Feita',     color:'#F59E0B' },
-  { key:'fechado',       label:'Fechado',        color:'#22C55E' },
-  { key:'perdido',       label:'Perdido',        color:'#EF4444' }
+  { key:'novo',          label:'Novo',               color:'#64748B' },
+  { key:'contatado',     label:'Contatado',           color:'#3B82F6' },
+  { key:'call_agendada', label:'Call Confirmada',     color:'#A78BFA' },
+  { key:'call_feita',    label:'Call Realizada',      color:'#F59E0B' },
+  { key:'fechado',       label:'Venda Ganha',         color:'#22C55E' },
+  { key:'perdido',       label:'Venda Perdida',       color:'#EF4444' }
 ];
 
 // ── STATE ─────────────────────────────────────────────────────────────────
@@ -548,7 +549,7 @@ function renderFunil() {
   document.getElementById('c-ctas').textContent     = ctas.count.toLocaleString('pt-BR');
 
   // ── Funil visual horizontal (6 etapas-chave) ───────────────────────────
-  const KEY_STEPS = ['intro','quiz_start','formulario','form_enviado','resultado','cta_clicado'];
+  const KEY_STEPS = ['intro','quiz_start','formulario','form_enviado','resultado','cta_clicado','agendamento'];
   const keyFunnel = funnel.filter(s => KEY_STEPS.includes(s.name))
     .sort((a,b) => KEY_STEPS.indexOf(a.name)-KEY_STEPS.indexOf(b.name));
   const maxCount = Math.max(...keyFunnel.map(s=>s.count), 1);
