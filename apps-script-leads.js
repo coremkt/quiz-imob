@@ -1,12 +1,11 @@
 // ── CORE MKT — Apps Script · Dashboard Data Collector ───────────────────────
 // Sheet ID: 1AtBHJjbcl755ZGW_TL6V8QM3pguUDvHJpjizEh4sovw
 //
-// Como atualizar o deployment após editar este código:
-//   Apps Script → Gerenciar implantações → lápis → Nova versão → Implantar
-//   (a URL permanece a mesma)
+// Como atualizar: Apps Script → salvar → Gerenciar implantações → lápis →
+//   Nova versão → Implantar (a URL fica a mesma)
 //
-// Como compartilhar a planilha para o dashboard funcionar:
-//   Google Sheets → Compartilhar → Qualquer pessoa com o link → Visualizador
+// A planilha NÃO precisa ser pública — os dados são servidos pelo próprio
+// Apps Script com JSONP, funcionando a partir de qualquer origem.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SHEET_ID = '1AtBHJjbcl755ZGW_TL6V8QM3pguUDvHJpjizEh4sovw';
@@ -46,9 +45,38 @@ function doGet(e) {
 
   try {
     const ss = SpreadsheetApp.openById(SHEET_ID);
+
+    // ── exportar dados para o dashboard (JSONP) ─────────────────────────────
+    if (p.type === 'export') {
+      const sheetName = p.sheet === 'leads' ? 'Leads' : 'Eventos';
+      const sheet     = ss.getSheetByName(sheetName);
+      let result;
+
+      if (!sheet) {
+        result = JSON.stringify({ headers: [], rows: [] });
+      } else {
+        const vals    = sheet.getDataRange().getValues();
+        const headers = vals[0] || [];
+        const rows    = vals.slice(1).map(row => {
+          const obj = {};
+          headers.forEach((h, i) => { obj[h] = (row[i] !== undefined && row[i] !== '') ? String(row[i]) : ''; });
+          return obj;
+        });
+        result = JSON.stringify({ headers, rows });
+      }
+
+      // JSONP quando há callback, JSON puro caso contrário
+      if (p.cb) {
+        return ContentService
+          .createTextOutput(p.cb + '(' + result + ')')
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      }
+      return ContentService.createTextOutput(result).setMimeType(ContentService.MimeType.JSON);
+    }
+
     const ts = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
-    // ── evento de funil (um row por step) ──────────────────────────────────
+    // ── evento de funil ─────────────────────────────────────────────────────
     if (p.type === 'event') {
       const sheet = ensureSheet(ss, 'Eventos', [
         'Timestamp', 'SessionID', 'QuizID', 'Step', 'StepIndex'
@@ -62,7 +90,7 @@ function doGet(e) {
       ]);
     }
 
-    // ── lead completo (um row por formulário enviado) ───────────────────────
+    // ── lead completo ───────────────────────────────────────────────────────
     if (p.type === 'lead') {
       const sheet = ensureSheet(ss, 'Leads', [
         'Timestamp', 'SessionID', 'QuizID',
@@ -86,6 +114,11 @@ function doGet(e) {
     return ContentService.createTextOutput('ok').setMimeType(ContentService.MimeType.TEXT);
 
   } catch (err) {
+    const errJson = JSON.stringify({ error: err.message });
+    if (p.cb) {
+      return ContentService.createTextOutput(p.cb + '(' + errJson + ')')
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    }
     return ContentService.createTextOutput('erro: ' + err.message).setMimeType(ContentService.MimeType.TEXT);
   }
 }

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard · CORE MKT</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] } } }
+    }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { background: #F8FAFC; }
+    .bar-track { background: #E2E8F0; border-radius: 99px; height: 8px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 99px; transition: width 0.7s ease; }
+    .tag { display:inline-flex; align-items:center; padding:2px 10px; border-radius:99px; font-size:12px; font-weight:700; }
+    .tag-a { background:#EFF6FF; color:#0369A1; }
+    .tag-b { background:#F3F0FF; color:#6D28D9; }
+    .tag-c { background:#F0FDF4; color:#15803D; }
+    .tag-d { background:#FFF7ED; color:#C2410C; }
+    .tag-e { background:#F9FAFB; color:#6B7280; }
+    .tag-x { background:#FEF2F2; color:#DC2626; }
+    tbody tr:hover td { background: #F1F5F9; }
+    .drop-bad  { color: #DC2626; font-weight: 700; }
+    .drop-ok   { color: #15803D; font-weight: 600; }
+    .drop-mid  { color: #D97706; font-weight: 600; }
+  </style>
+</head>
+<body class="font-sans text-slate-800">
+
+  <!-- ── HEADER ───────────────────────────────────────────────────────────── -->
+  <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between gap-4 sticky top-0 z-10">
+    <div class="flex items-center gap-3">
+      <span class="text-slate-400 text-sm font-semibold uppercase tracking-widest">CORE MKT</span>
+      <span class="text-slate-300">·</span>
+      <select id="quiz-select" onchange="loadQuiz(this.value)"
+        class="text-sm font-semibold text-slate-700 border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </select>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="last-updated" class="text-xs text-slate-400 hidden sm:block"></span>
+      <button onclick="refresh()" id="btn-refresh"
+        class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition-colors">
+        ↻ Atualizar
+      </button>
+    </div>
+  </header>
+
+  <!-- ── CONTEÚDO ──────────────────────────────────────────────────────────── -->
+  <main class="max-w-5xl mx-auto px-4 py-8 space-y-8">
+
+    <div id="state-loading" class="text-center py-20 text-slate-400">
+      <p class="text-lg font-semibold mb-2">Carregando dados...</p>
+      <p class="text-sm">Buscando no Apps Script</p>
+    </div>
+
+    <div id="state-empty" class="hidden text-center py-20 text-slate-400">
+      <p class="text-lg font-semibold mb-2">Ainda sem dados</p>
+      <p class="text-sm">O quiz ainda não recebeu visitas, ou o Apps Script precisa ser atualizado e reimplantado.</p>
+    </div>
+
+    <div id="state-error" class="hidden text-center py-20">
+      <p class="text-lg font-semibold text-red-600 mb-2">Não foi possível carregar os dados</p>
+      <p id="err-msg" class="text-sm text-slate-500 mb-4 max-w-md mx-auto"></p>
+      <p class="text-xs text-slate-400">Verifique se o Apps Script foi atualizado com o código novo e reimplantado.</p>
+    </div>
+
+    <div id="content" class="hidden space-y-8">
+
+      <!-- ── CARDS ──────────────────────────────────────────────────────── -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-100">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Iniciaram</p>
+          <p id="card-starts" class="text-3xl font-extrabold text-slate-800">—</p>
+          <p class="text-xs text-slate-400 mt-1">quiz_start únicos</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-slate-100">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Leads</p>
+          <p id="card-leads" class="text-3xl font-extrabold text-blue-600">—</p>
+          <p class="text-xs text-slate-400 mt-1">formulário enviado</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-slate-100">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Agendaram</p>
+          <p id="card-ctas" class="text-3xl font-extrabold text-green-600">—</p>
+          <p class="text-xs text-slate-400 mt-1">clicaram no CTA</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-slate-100">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Conv. Geral</p>
+          <p id="card-conv" class="text-3xl font-extrabold text-slate-800">—</p>
+          <p class="text-xs text-slate-400 mt-1">início → CTA</p>
+        </div>
+      </div>
+
+      <!-- ── FUNIL ──────────────────────────────────────────────────────── -->
+      <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100">
+          <h2 class="font-extrabold text-slate-800">Funil · etapa por etapa</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Sessões únicas por step · % calculado sobre o passo anterior</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-100 text-xs text-slate-400 uppercase tracking-wider">
+                <th class="px-6 py-3 text-left font-semibold">Etapa</th>
+                <th class="px-4 py-3 text-right font-semibold w-20">Sessões</th>
+                <th class="px-4 py-3 text-right font-semibold w-20">% início</th>
+                <th class="px-4 py-3 text-right font-semibold w-24">vs anterior</th>
+                <th class="px-6 py-3 text-left font-semibold min-w-[160px]">Barra</th>
+              </tr>
+            </thead>
+            <tbody id="funnel-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── BALDES ─────────────────────────────────────────────────────── -->
+      <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100">
+          <h2 class="font-extrabold text-slate-800">Baldes · distribuição de leads</h2>
+        </div>
+        <div id="baldes-body" class="px-6 py-5 grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
+      </div>
+
+      <!-- ── LEADS ──────────────────────────────────────────────────────── -->
+      <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h2 class="font-extrabold text-slate-800">Leads capturados</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Apenas quem enviou o formulário completo</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <select id="filter-balde" onchange="renderLeads()"
+              class="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none">
+              <option value="">Todos os baldes</option>
+              <option value="A">Filtro (A)</option>
+              <option value="B">Rastreamento (B)</option>
+              <option value="C">Velocidade (C)</option>
+              <option value="D">Origem (D)</option>
+              <option value="E">Nutrição (E)</option>
+              <option value="X">Desqualificado (X)</option>
+            </select>
+            <input id="search-lead" oninput="renderLeads()" placeholder="Buscar nome..."
+              class="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none w-36">
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-100 text-xs text-slate-400 uppercase tracking-wider">
+                <th class="px-4 py-3 text-left font-semibold">Data</th>
+                <th class="px-4 py-3 text-left font-semibold">Nome</th>
+                <th class="px-4 py-3 text-left font-semibold">Telefone</th>
+                <th class="px-4 py-3 text-left font-semibold">Balde</th>
+                <th class="px-4 py-3 text-left font-semibold">Corretores</th>
+                <th class="px-4 py-3 text-left font-semibold">Canal principal</th>
+                <th class="px-4 py-3 text-left font-semibold">Faturamento</th>
+                <th class="px-4 py-3 text-left font-semibold">Urgência</th>
+              </tr>
+            </thead>
+            <tbody id="leads-body"></tbody>
+          </table>
+          <div id="leads-empty" class="hidden text-center py-10 text-slate-400 text-sm">
+            Nenhum lead com este filtro.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+
+  <script>
+  // ── CONFIG ────────────────────────────────────────────────────────────────
+  const APPS_URL = 'https://script.google.com/macros/s/AKfycbyVwGwoiMr9ixV8VXL_srBdQikZ-IINVtUAtFKTBMb0mDFlKZ-IINVtUAtFKTBMb0mDFlQo_N5lNwSk8C506xix73aA/exec';
+
+  const QUIZZES = {
+    'quiz-imob': {
+      label: 'Assessoria Imob 2026',
+      steps: [
+        { name:'intro',        label:'Página carregada'    },
+        { name:'quiz_start',   label:'Clicou Começar'      },
+        { name:'q1',           label:'Q1 — Corretores'     },
+        { name:'q2',           label:'Q2 — Canal de leads' },
+        { name:'q3',           label:'Q3 — Atendimento'    },
+        { name:'factoide1',    label:'Factoide 1'          },
+        { name:'q4',           label:'Q4 — % com perfil'   },
+        { name:'q5',           label:'Q5 — Frustração'     },
+        { name:'q6',           label:'Q6 — Reclamação'     },
+        { name:'q7',           label:'Q7 — Cenário futuro' },
+        { name:'q8',           label:'Q8 — Faturamento'    },
+        { name:'factoide2',    label:'Factoide 2'          },
+        { name:'q9',           label:'Q9 — Urgência'       },
+        { name:'formulario',   label:'Viu formulário'      },
+        { name:'form_enviado', label:'Enviou formulário'   },
+        { name:'resultado',    label:'Viu resultado'       },
+        { name:'cta_clicado',  label:'Clicou no CTA →'    }
+      ]
+    }
+    // futuros quizzes: 'quiz-id': { label:'...', steps:[...] }
+  };
+
+  const Q_OPTIONS = {
+    Q1: ['Só eu / autônomo','2 a 3 corretores','4 a 6 corretores','Mais de 6'],
+    Q2: ['Portais (Zap, OLX...)','Meta Ads','Indicações','Vários canais'],
+    Q3: ['Corretor responde quando pode','Lead preenche algo antes','Cada corretor tem seu jeito','Não acompanho de perto'],
+    Q4: ['< 20% têm perfil','20%–40%','Nunca medi','> 50%'],
+    Q5: ['"Gastei mas não sei onde"','"Plataforma não entrega"','"Corretor não converte"','"Desconfio de promessas"'],
+    Q6: ['Sim — frequente','Às vezes','Raramente','Não acompanho'],
+    Q7: ['Continuo gastando sem saber','Corretor vai desanimar','Perco mercado','Fico travado no mesmo tamanho'],
+    Q8: ['< R$30k','R$30k–R$50k','R$50k–R$100k','R$100k–R$500k','R$500k–R$1M','> R$1M'],
+    Q9: ['Agora — 30 dias','Em 2 a 4 semanas','Ainda entendendo']
+  };
+
+  const BALDE_COLOR = { A:'tag-a', B:'tag-b', C:'tag-c', D:'tag-d', E:'tag-e', X:'tag-x' };
+  const BALDE_LABEL = { A:'Filtro', B:'Rastreamento', C:'Velocidade', D:'Origem', E:'Nutrição', X:'Desqualificado' };
+
+  // ── ESTADO ────────────────────────────────────────────────────────────────
+  let currentQuiz = null;
+  let eventosData = [];
+  let leadsData   = [];
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    const sel = document.getElementById('quiz-select');
+    Object.entries(QUIZZES).forEach(([id, q]) => {
+      const opt = document.createElement('option');
+      opt.value = id; opt.textContent = q.label;
+      sel.appendChild(opt);
+    });
+    loadQuiz(Object.keys(QUIZZES)[0]);
+  });
+
+  function loadQuiz(quizId) {
+    currentQuiz = quizId;
+    setState('loading');
+    Promise.all([
+      scriptFetch('eventos'),
+      scriptFetch('leads')
+    ]).then(([evRaw, ldRaw]) => {
+      eventosData = (evRaw.rows || []).filter(r => r.QuizID === quizId);
+      leadsData   = (ldRaw.rows || []).filter(r => r.QuizID === quizId);
+      document.getElementById('last-updated').textContent =
+        'Atualizado às ' + new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+      if (eventosData.length === 0 && leadsData.length === 0) { setState('empty'); return; }
+      setState('content');
+      renderCards();
+      renderFunnel();
+      renderBaldes();
+      renderLeads();
+    }).catch(err => {
+      document.getElementById('err-msg').textContent = err.message;
+      setState('error');
+    });
+  }
+
+  function refresh() {
+    loadQuiz(currentQuiz);
+    const btn = document.getElementById('btn-refresh');
+    btn.textContent = '↻ Atualizando...';
+    setTimeout(() => { btn.textContent = '↻ Atualizar'; }, 3000);
+  }
+
+  // ── APPS SCRIPT FETCH (JSONP — funciona de file:// e https://) ───────────
+  function scriptFetch(sheet) {
+    return new Promise((resolve, reject) => {
+      const cbName = '__cb_' + Math.random().toString(36).slice(2);
+      const url    = APPS_URL + '?type=export&sheet=' + encodeURIComponent(sheet) + '&cb=' + cbName;
+
+      const timer = setTimeout(() => {
+        delete window[cbName];
+        reject(new Error(
+          'Tempo limite excedido ao buscar "' + sheet + '". ' +
+          'Verifique se o Apps Script foi atualizado e reimplantado.'
+        ));
+      }, 12000);
+
+      window[cbName] = (data) => {
+        clearTimeout(timer);
+        delete window[cbName];
+        if (data && data.error) reject(new Error('Apps Script: ' + data.error));
+        else resolve(data || { rows: [] });
+      };
+
+      const s = document.createElement('script');
+      s.src = url;
+      s.onerror = () => {
+        clearTimeout(timer);
+        delete window[cbName];
+        reject(new Error('Falha ao conectar. Verifique se a URL do Apps Script está correta.'));
+      };
+      document.head.appendChild(s);
+    });
+  }
+
+  // ── UI STATE ──────────────────────────────────────────────────────────────
+  function setState(state) {
+    ['loading','empty','error'].forEach(s =>
+      document.getElementById('state-'+s).classList.toggle('hidden', s !== state)
+    );
+    document.getElementById('content').classList.toggle('hidden', state !== 'content');
+  }
+
+  // ── FUNIL ─────────────────────────────────────────────────────────────────
+  function calcFunnel(steps) {
+    const byStep = {};
+    eventosData.forEach(e => {
+      if (!e.Step) return;
+      if (!byStep[e.Step]) byStep[e.Step] = new Set();
+      if (e.SessionID) byStep[e.Step].add(e.SessionID);
+    });
+
+    const introCount = (byStep['intro'] || byStep['quiz_start'] || new Set()).size || 1;
+
+    return steps.map((step, i) => {
+      const count    = byStep[step.name] ? byStep[step.name].size : 0;
+      const pctStart = introCount > 0 ? Math.round(count / introCount * 100) : 0;
+      const prevSize = i > 0 && byStep[steps[i-1].name] ? byStep[steps[i-1].name].size : 0;
+      const pctPrev  = prevSize > 0 ? Math.round(count / prevSize * 100) : (i === 0 ? 100 : 0);
+      return { ...step, count, pctStart, pctPrev };
+    });
+  }
+
+  function renderCards() {
+    const cfg    = QUIZZES[currentQuiz];
+    const funnel = calcFunnel(cfg.steps);
+    const starts = funnel.find(s => s.name === 'quiz_start')   || { count: 0 };
+    const leads  = funnel.find(s => s.name === 'form_enviado') || { count: 0 };
+    const ctas   = funnel.find(s => s.name === 'cta_clicado')  || { count: 0 };
+    const conv   = starts.count > 0 ? Math.round(ctas.count / starts.count * 100) : 0;
+
+    document.getElementById('card-starts').textContent = starts.count.toLocaleString('pt-BR');
+    document.getElementById('card-leads').textContent  = leads.count.toLocaleString('pt-BR');
+    document.getElementById('card-ctas').textContent   = ctas.count.toLocaleString('pt-BR');
+    document.getElementById('card-conv').textContent   = conv + '%';
+  }
+
+  function renderFunnel() {
+    const cfg    = QUIZZES[currentQuiz];
+    const funnel = calcFunnel(cfg.steps);
+    const max    = Math.max(...funnel.map(s => s.count), 1);
+    const KEY    = new Set(['quiz_start','form_enviado','cta_clicado','formulario']);
+
+    document.getElementById('funnel-body').innerHTML = funnel.map((step, i) => {
+      const barPct    = Math.round(step.count / max * 100);
+      const isKey     = KEY.has(step.name);
+      const dropClass = i === 0 ? '' : step.pctPrev >= 80 ? 'drop-ok' : step.pctPrev >= 50 ? 'drop-mid' : 'drop-bad';
+      const prevText  = i === 0 ? '—' : step.pctPrev + '%';
+
+      return `<tr class="border-b border-slate-50 ${isKey ? 'bg-blue-50/40' : ''}">
+        <td class="px-6 py-3 whitespace-nowrap ${isKey ? 'font-semibold text-slate-800' : 'text-slate-500'}">
+          <span class="mr-1.5 ${isKey ? 'text-blue-400' : 'text-transparent'}">●</span>${step.label}
+        </td>
+        <td class="px-4 py-3 text-right font-semibold tabular-nums text-slate-700">
+          ${step.count.toLocaleString('pt-BR')}
+        </td>
+        <td class="px-4 py-3 text-right text-slate-400 tabular-nums">${step.pctStart}%</td>
+        <td class="px-4 py-3 text-right tabular-nums ${dropClass}">${prevText}</td>
+        <td class="px-6 py-3 min-w-[160px]">
+          <div class="bar-track">
+            <div class="bar-fill" style="width:0%; background:${isKey ? '#0369A1' : '#94A3B8'};"
+                 data-w="${barPct}%"></div>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.querySelectorAll('#funnel-body .bar-fill').forEach(b => {
+        b.style.width = b.dataset.w;
+      });
+    }));
+  }
+
+  // ── BALDES ────────────────────────────────────────────────────────────────
+  function renderBaldes() {
+    const counts = {};
+    leadsData.forEach(l => { const b = l.Balde || 'X'; counts[b] = (counts[b] || 0) + 1; });
+    const total = leadsData.length || 1;
+
+    document.getElementById('baldes-body').innerHTML = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([balde, n]) => `
+        <div class="flex items-center gap-3">
+          <span class="tag ${BALDE_COLOR[balde] || 'tag-e'} shrink-0">
+            ${BALDE_LABEL[balde] || balde}
+          </span>
+          <div class="flex-1">
+            <div class="flex justify-between text-xs text-slate-500 mb-1">
+              <span>${n} lead${n > 1 ? 's' : ''}</span>
+              <span>${Math.round(n / total * 100)}%</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill bg-slate-400" data-w="${Math.round(n / total * 100)}%" style="width:0%"></div>
+            </div>
+          </div>
+        </div>`).join('');
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.querySelectorAll('#baldes-body .bar-fill').forEach(b => { b.style.width = b.dataset.w; });
+    }));
+  }
+
+  // ── LEADS ─────────────────────────────────────────────────────────────────
+  function renderLeads() {
+    const filterBalde = document.getElementById('filter-balde').value;
+    const search      = (document.getElementById('search-lead').value || '').toLowerCase().trim();
+
+    const rows = leadsData.filter(l => {
+      if (filterBalde && l.Balde !== filterBalde) return false;
+      if (search && !(l.Nome || '').toLowerCase().includes(search)) return false;
+      return true;
+    });
+
+    document.getElementById('leads-empty').classList.toggle('hidden', rows.length > 0);
+
+    const opt = (key, val) => {
+      const idx = parseInt(val);
+      return (!isNaN(idx) && Q_OPTIONS[key] && Q_OPTIONS[key][idx]) ? Q_OPTIONS[key][idx] : (val || '—');
+    };
+
+    document.getElementById('leads-body').innerHTML = rows.map(l => {
+      const bTag = `<span class="tag ${BALDE_COLOR[l.Balde] || 'tag-e'}">${BALDE_LABEL[l.Balde] || l.Balde || '—'}</span>`;
+      return `<tr class="border-b border-slate-50">
+        <td class="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">${l.Timestamp ? l.Timestamp.slice(0,16) : '—'}</td>
+        <td class="px-4 py-3 font-semibold text-slate-800 whitespace-nowrap">${l.Nome || '—'}</td>
+        <td class="px-4 py-3 text-slate-600 whitespace-nowrap">${l.Telefone || '—'}</td>
+        <td class="px-4 py-3">${bTag}</td>
+        <td class="px-4 py-3 text-xs text-slate-500">${opt('Q1', l.Q1)}</td>
+        <td class="px-4 py-3 text-xs text-slate-500">${opt('Q2', l.Q2)}</td>
+        <td class="px-4 py-3 text-xs font-semibold text-slate-700 whitespace-nowrap">${opt('Q8', l.Q8)}</td>
+        <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">${opt('Q9', l.Q9)}</td>
+      </tr>`;
+    }).join('');
+  }
+  </script>
+</body>
+</html>
