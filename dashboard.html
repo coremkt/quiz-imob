@@ -130,7 +130,7 @@
     .cards-funil { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:12px; }
     .cards-funil .conv-hero { grid-column:1 / -1; }
     @media(min-width:640px)  { .cards-funil { grid-template-columns:repeat(3,1fr); } }
-    @media(min-width:1024px) { .cards-funil { grid-template-columns:2fr 1fr 1fr 1fr 1fr; } .cards-funil .conv-hero { grid-column:auto; } }
+    @media(min-width:1024px) { .cards-funil { grid-template-columns:2fr 1fr 1fr 1fr; } .cards-funil .conv-hero { grid-column:auto; } }
 
     .cards-pipeline { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:20px; }
     .cards-pipeline .span-2-mobile { grid-column:1 / -1; }
@@ -288,11 +288,6 @@
         <div class="card-label">MQL</div>
         <div id="c-ctas" class="card-value" style="color:var(--green)">—</div>
         <div class="card-sub">clicaram no CTA</div>
-      </div>
-      <div class="card">
-        <div class="card-label">Agendamentos</div>
-        <div id="c-agen" class="card-value" style="color:var(--purple)">—</div>
-        <div class="card-sub">agendaram a call</div>
       </div>
     </div>
 
@@ -622,14 +617,11 @@ function renderFunil() {
   const base   = intro.count || starts.count || 1;
   const conv   = base > 0 ? (ctas.count/base*100).toFixed(1) : '0.0';
 
-  const agen = funnel.find(s=>s.name==='agendamento') || {count:0};
-
   document.getElementById('c-conv').textContent     = conv + '%';
   document.getElementById('c-conv-sub').textContent = base.toLocaleString('pt-BR') + ' visitantes → ' + ctas.count.toLocaleString('pt-BR') + ' MQL';
   document.getElementById('c-starts').textContent   = starts.count.toLocaleString('pt-BR');
   document.getElementById('c-leads').textContent    = leads.count.toLocaleString('pt-BR');
   document.getElementById('c-ctas').textContent     = ctas.count.toLocaleString('pt-BR');
-  document.getElementById('c-agen').textContent     = agen.count.toLocaleString('pt-BR');
 
   // KPIs do Pipeline CRM (via leadsData)
   const pCallAgen  = leadsData.filter(l=>(l.status||'novo')==='call_agendada').length;
@@ -644,8 +636,8 @@ function renderFunil() {
   document.getElementById('p-perdido').textContent   = pPerdido.toLocaleString('pt-BR');
   document.getElementById('p-txfech').textContent    = txFech + '%';
 
-  // ── Funil visual horizontal (6 etapas-chave) ───────────────────────────
-  const KEY_STEPS = ['intro','quiz_start','formulario','form_enviado','resultado','cta_clicado','agendamento'];
+  // ── Funil visual horizontal (etapas do quiz até o CTA) ────────────────
+  const KEY_STEPS = ['intro','quiz_start','formulario','form_enviado','resultado','cta_clicado'];
   const keyFunnel = funnel.filter(s => KEY_STEPS.includes(s.name))
     .sort((a,b) => KEY_STEPS.indexOf(a.name)-KEY_STEPS.indexOf(b.name));
   const maxCount = Math.max(...keyFunnel.map(s=>s.count), 1);
