@@ -532,6 +532,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // ── STATE ─────────────────────────────────────────────────────────────────
   const ans = {};
 
+  // ── TRACKING ──────────────────────────────────────────────────────────────
+  const APPS_URL = 'https://script.google.com/macros/s/AKfycbyVwGwoiMr9ixV8VXL_srBdQikZ-IINVtUAtFKTBMb0mDFlKZ-IINVtUAtFKTBMb0mDFlQo_N5lNwSk8C506xix73aA/exec';
+  const QUIZ_ID  = 'quiz-imob';
+  const SID      = Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+
+  function sendEvent(step, idx) {
+    try { new Image().src = APPS_URL+'?type=event&qid='+QUIZ_ID+'&sid='+SID+'&step='+encodeURIComponent(step)+'&idx='+idx; } catch(_){}
+  }
+  function sendLead() {
+    const p = new URLSearchParams({type:'lead',qid:QUIZ_ID,sid:SID,
+      name:ans.name||'',phone:ans.phone||'',email:ans.email||'',balde:ans.balde||''});
+    [1,2,3,4,5,6,7,8,9].forEach(n=>{ if(ans['q'+n]!==undefined) p.set('q'+n,ans['q'+n]); });
+    try { new Image().src = APPS_URL+'?'+p.toString(); } catch(_){}
+  }
+
   // ── SCREEN MANAGER ────────────────────────────────────────────────────────
   // ALL show/hide is done via inline style.display — zero CSS class conflicts.
   const SCREENS = ['s-intro','s-f1','s-f2','s-data','s-proc','s-result'];
@@ -559,7 +574,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   // ── QUIZ FLOW ─────────────────────────────────────────────────────────────
-  function startQuiz() { renderQ(0); }
+  function startQuiz() { sendEvent('quiz_start',1); renderQ(0); }
 
   function renderQ(i) {
     const q = getQuestion(i);
@@ -604,9 +619,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   function advance(qi) {
-    if (qi === 2) { show('s-f1'); return; }
-    if (qi === 7) { show('s-f2'); return; }
-    if (qi === 8) { show('s-data'); return; }
+    const Q_STEPS = [2,3,4,6,7,8,9,10,12];
+    sendEvent('q'+(qi+1), Q_STEPS[qi]);
+    if (qi === 2) { sendEvent('factoide1',5); show('s-f1'); return; }
+    if (qi === 7) { sendEvent('factoide2',11); show('s-f2'); return; }
+    if (qi === 8) { sendEvent('formulario',13); show('s-data'); return; }
     renderQ(qi+1);
   }
 
@@ -624,6 +641,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const balde = calcBalde(); ans.balde = balde;
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({ 'event': 'lead' });
+    sendEvent('form_enviado',14);
+    sendLead();
     runProc();
   }
 
@@ -806,17 +825,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>`;
 
     show('s-result');
+    sendEvent('resultado',15);
     window.scrollTo(0, 0);
     setTimeout(animateBars, 500);
   }
 
   function goToVSL() {
+    sendEvent('cta_clicado',16);
     const urls={A:'agendamento-a.html',B:'agendamento-b.html',C:'agendamento-c.html',D:'agendamento-d.html',E:'desqualificado.html',X:'desqualificado.html'};
     window.location.href=urls[ans.balde]||'desqualificado.html';
   }
 
   // ── INIT ──────────────────────────────────────────────────────────────────
-  show('s-intro');
+  sendEvent('intro',0); show('s-intro');
   </script>
 </body>
 </html>
