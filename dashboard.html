@@ -163,9 +163,8 @@
     }
 
     /* ── KANBAN ── */
-    .kanban-wrap { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; padding-bottom:16px; }
-    @media(max-width:600px) { .kanban-wrap { grid-template-columns:repeat(2,1fr); } }
-    .k-col { display:flex; flex-direction:column; gap:8px; }
+    .kanban-wrap { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; align-items:start; }
+    .k-col { display:flex; flex-direction:column; gap:8px; min-width:0; }
     .k-header { padding:10px 12px; border-radius:10px; display:flex; flex-direction:column; gap:4px; }
     .k-header-top { display:flex; align-items:center; justify-content:space-between; }
     .k-status-dot { width:8px; height:8px; border-radius:50%; }
@@ -359,7 +358,7 @@
 
   <!-- ── PIPELINE ── -->
   <div id="tab-pipeline" class="tab-content" style="display:none;">
-    <div class="kanban-wrap" id="kanban"></div>
+    <div class="kanban-wrap" id="kanban" style="padding:4px 0 24px;"></div>
   </div>
 
 </main>
