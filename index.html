@@ -543,7 +543,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     fetch(SB_URL + '/rest/v1/eventos', {
       method: 'POST',
       headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ quiz_id: QUIZ_ID, session_id: SID, step: step, step_index: idx })
+      body: JSON.stringify({ quiz_id: QUIZ_ID, session_id: SID, step: step, step_index: idx }),
+      keepalive: true
     }).catch(function(){});
   }
   function sendLead() {
