@@ -262,7 +262,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 
   <!-- ── RESULT ── -->
-  <div id="s-result" class="qs" style="display:none; flex-direction:column; align-items:flex-start; justify-content:flex-start; min-height:100vh; padding:4rem 1.5rem 6rem; overflow-y:auto; background:#FAFAF8;">
+  <div id="s-result" class="qs" style="display:none; flex-direction:column; align-items:flex-start; justify-content:flex-start; min-height:100vh; padding:4rem 1.5rem 6rem; background:#FAFAF8;">
     <div id="r-body" class="w-full max-w-[420px] mx-auto"></div>
   </div>
 
@@ -559,7 +559,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   // ── QUIZ FLOW ─────────────────────────────────────────────────────────────
-  function startQuiz() { renderQ(0); prog(1,9); }
+  function startQuiz() { renderQ(0); }
 
   function renderQ(i) {
     const q = getQuestion(i);
@@ -594,7 +594,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     sq.classList.remove('show');
     requestAnimationFrame(() => requestAnimationFrame(() => sq.classList.add('show')));
 
-    prog(i+1, 9);
+    prog(i+1, 10);
   }
 
   function pick(qi, oi) {
@@ -606,7 +606,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   function advance(qi) {
     if (qi === 2) { show('s-f1'); return; }
     if (qi === 7) { show('s-f2'); return; }
-    if (qi === 8) { show('s-data'); prog(9,9); return; }
+    if (qi === 8) { show('s-data'); return; }
     renderQ(qi+1);
   }
 
@@ -805,6 +805,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>`;
 
     show('s-result');
+    window.scrollTo(0, 0);
     setTimeout(animateBars, 500);
   }
 
