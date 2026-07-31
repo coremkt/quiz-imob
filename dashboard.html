@@ -46,7 +46,8 @@
     header { background:var(--s1); border-bottom:1px solid var(--border); padding:0 24px; height:56px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:20; }
     .header-left { display:flex; align-items:center; gap:12px; }
     .brand { font-size:11px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:.1em; }
-    .quiz-sel { background:var(--s2); border:1px solid var(--border-2); border-radius:8px; padding:6px 10px; font-size:13px; font-weight:600; color:var(--text); font-family:inherit; outline:none; cursor:pointer; }
+    .quiz-sel { background:var(--s2); border:1px solid var(--border-2); border-radius:8px; padding:6px 10px; font-size:13px; font-weight:600; color:var(--text); font-family:inherit; outline:none; cursor:pointer; max-width:220px; }
+    @media(max-width:640px) { .quiz-sel { max-width:160px; font-size:12px; } }
     .tab-nav { display:flex; gap:2px; background:var(--s2); border-radius:10px; padding:3px; }
     .tab-btn { padding:6px 16px; font-size:13px; font-weight:600; border-radius:8px; border:none; cursor:pointer; font-family:inherit; transition:background .18s, color .18s; color:var(--text-2); background:transparent; }
     .tab-btn.active { background:var(--s3); color:var(--text); }
@@ -125,6 +126,43 @@
     .tag-E { background:rgba(148,163,184,.12); color:#94A3B8; }
     .tag-X { background:rgba(239,68,68,.18); color:#FCA5A5; }
 
+    /* ── RESPONSIVE GRIDS ── */
+    .cards-funil { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:12px; }
+    .cards-funil .conv-hero { grid-column:1 / -1; }
+    @media(min-width:640px)  { .cards-funil { grid-template-columns:repeat(3,1fr); } }
+    @media(min-width:1024px) { .cards-funil { grid-template-columns:2fr 1fr 1fr 1fr 1fr; } .cards-funil .conv-hero { grid-column:auto; } }
+
+    .cards-pipeline { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:20px; }
+    .cards-pipeline .span-2-mobile { grid-column:1 / -1; }
+    @media(min-width:640px)  { .cards-pipeline { grid-template-columns:repeat(3,1fr); } .cards-pipeline .span-2-mobile { grid-column:auto; } }
+    @media(min-width:1024px) { .cards-pipeline { grid-template-columns:repeat(5,1fr); } }
+
+    /* ── MOBILE HEADER ── */
+    @media(max-width:640px) {
+      header { height:auto; flex-wrap:wrap; padding:10px 16px; gap:8px; }
+      .header-left { flex:1; }
+      .tab-nav { order:10; width:100%; }
+      .tab-btn { flex:1; text-align:center; }
+      .header-right .last-upd { display:none; }
+    }
+
+    /* ── TOUCH TARGETS ── */
+    @media(max-width:640px) {
+      .tab-btn { padding:10px 18px; min-height:44px; }
+      .btn-ghost { padding:10px 14px; min-height:44px; }
+      .btn-primary { min-height:48px; }
+    }
+
+    /* ── FOCUS STATES ── */
+    button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+      outline:2px solid var(--accent); outline-offset:2px;
+    }
+
+    /* ── REDUCED MOTION ── */
+    @media(prefers-reduced-motion:reduce) {
+      *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+    }
+
     /* ── KANBAN ── */
     .kanban-wrap { display:flex; gap:12px; overflow-x:auto; padding-bottom:16px; min-height:calc(100vh - 160px); }
     .kanban-wrap::-webkit-scrollbar { height:6px; }
@@ -153,7 +191,7 @@
     #drawer.open { transform:translateX(0); }
     @media(max-width:480px){ #drawer { width:100vw; } }
     .drawer-header { padding:20px 20px 16px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; gap:12px; position:sticky; top:0; background:var(--s1); z-index:1; }
-    .drawer-close { background:var(--s2); border:1px solid var(--border); border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-2); font-size:16px; flex-shrink:0; transition:color .18s; }
+    .drawer-close { background:var(--s2); border:1px solid var(--border); border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-2); font-size:16px; flex-shrink:0; transition:color .18s; font-family:inherit; }
     .drawer-close:hover { color:var(--text); }
     .drawer-body { padding:20px; flex:1; display:flex; flex-direction:column; gap:20px; }
     .drawer-section { display:flex; flex-direction:column; gap:10px; }
@@ -210,7 +248,10 @@
   </div>
   <div class="header-right">
     <span id="last-upd" class="last-upd"></span>
-    <button class="btn-ghost" onclick="refresh()">↻ Atualizar</button>
+    <button class="btn-ghost" onclick="refresh()" aria-label="Atualizar dados" style="display:flex;align-items:center;gap:6px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+      Atualizar
+    </button>
     <button class="btn-ghost" onclick="doLogout()">Sair</button>
   </div>
 </header>
@@ -226,8 +267,8 @@
   <!-- ── FUNIL ── -->
   <div id="tab-funil" class="tab-content active" style="display:none;">
 
-    <!-- CARDS RESUMO -->
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
+    <!-- CARDS RESUMO — FUNIL -->
+    <div class="cards-funil">
       <div class="card conv-hero" style="border-color:rgba(59,130,246,.25);background:linear-gradient(135deg,rgba(59,130,246,.1),var(--s1));">
         <div class="card-label">Conversão total · visitante → MQL</div>
         <div id="c-conv" class="card-value" style="color:var(--accent)">—</div>
@@ -246,7 +287,45 @@
       <div class="card">
         <div class="card-label">MQL</div>
         <div id="c-ctas" class="card-value" style="color:var(--green)">—</div>
-        <div class="card-sub">avançaram para agendamento</div>
+        <div class="card-sub">clicaram no CTA</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Agendamentos</div>
+        <div id="c-agen" class="card-value" style="color:var(--purple)">—</div>
+        <div class="card-sub">agendaram a call</div>
+      </div>
+    </div>
+
+    <!-- CARDS RESUMO — PIPELINE CRM -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <span style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.1em;">Pipeline CRM</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+    <div class="cards-pipeline">
+      <div class="card">
+        <div class="card-label" style="color:#A78BFA;">Call Confirmada</div>
+        <div id="p-callagem" class="card-value" style="color:#A78BFA;">—</div>
+        <div class="card-sub">agendaram no Calendly</div>
+      </div>
+      <div class="card">
+        <div class="card-label" style="color:var(--amber);">Call Realizada</div>
+        <div id="p-callfeita" class="card-value" style="color:var(--amber);">—</div>
+        <div class="card-sub">calls concluídas</div>
+      </div>
+      <div class="card">
+        <div class="card-label" style="color:var(--green);">Venda Ganha</div>
+        <div id="p-fechado" class="card-value" style="color:var(--green);">—</div>
+        <div class="card-sub">clientes fechados</div>
+      </div>
+      <div class="card">
+        <div class="card-label" style="color:var(--red);">Venda Perdida</div>
+        <div id="p-perdido" class="card-value" style="color:var(--red);">—</div>
+        <div class="card-sub">negócios perdidos</div>
+      </div>
+      <div class="card span-2-mobile" style="border-color:rgba(34,197,94,.25);background:linear-gradient(135deg,rgba(34,197,94,.08),var(--s1));">
+        <div class="card-label">Tx. Fechamento</div>
+        <div id="p-txfech" class="card-value" style="color:var(--green);">—</div>
+        <div class="card-sub">fechado / (ganho + perdido)</div>
       </div>
     </div>
 
@@ -301,7 +380,9 @@
       <div id="dr-nome" style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;"></div>
       <div id="dr-balde"></div>
     </div>
-    <div class="drawer-close" onclick="closeDrawer()">✕</div>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Fechar" tabindex="0">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
   </div>
   <div class="drawer-body">
 
@@ -319,18 +400,11 @@
       <div class="row-2col">
         <div class="drawer-field">
           <label>Status</label>
-          <select id="dr-status" class="drawer-select" onchange="saveLeadField('status',this.value)">
-            <option value="novo">Novo</option>
-            <option value="contatado">Contatado</option>
-            <option value="call_agendada">Call Agendada</option>
-            <option value="call_feita">Call Feita</option>
-            <option value="fechado">Fechado</option>
-            <option value="perdido">Perdido</option>
-          </select>
+          <select id="dr-status" class="drawer-select" onchange="saveLeadField('status',this.value)"></select>
         </div>
         <div class="drawer-field">
           <label>Valor (R$)</label>
-          <input id="dr-valor" type="number" placeholder="0" class="drawer-input" onblur="saveLeadField('valor',parseFloat(this.value)||0)">
+          <input id="dr-valor" type="number" placeholder="0" class="drawer-input" inputmode="decimal" onblur="saveLeadField('valor',parseFloat(this.value)||0)">
         </div>
       </div>
     </div>
@@ -454,6 +528,12 @@ function initDashboard() {
     const o = document.createElement('option');
     o.value = id; o.textContent = q.label; sel.appendChild(o);
   });
+  // Popula o select de status do drawer a partir de STATUSES (fonte única de verdade)
+  const statusSel = document.getElementById('dr-status');
+  STATUSES.forEach(st => {
+    const o = document.createElement('option');
+    o.value = st.key; o.textContent = st.label; statusSel.appendChild(o);
+  });
   loadQuiz(Object.keys(QUIZZES)[0]);
 }
 
@@ -542,11 +622,27 @@ function renderFunil() {
   const base   = intro.count || starts.count || 1;
   const conv   = base > 0 ? (ctas.count/base*100).toFixed(1) : '0.0';
 
+  const agen = funnel.find(s=>s.name==='agendamento') || {count:0};
+
   document.getElementById('c-conv').textContent     = conv + '%';
   document.getElementById('c-conv-sub').textContent = base.toLocaleString('pt-BR') + ' visitantes → ' + ctas.count.toLocaleString('pt-BR') + ' MQL';
   document.getElementById('c-starts').textContent   = starts.count.toLocaleString('pt-BR');
   document.getElementById('c-leads').textContent    = leads.count.toLocaleString('pt-BR');
   document.getElementById('c-ctas').textContent     = ctas.count.toLocaleString('pt-BR');
+  document.getElementById('c-agen').textContent     = agen.count.toLocaleString('pt-BR');
+
+  // KPIs do Pipeline CRM (via leadsData)
+  const pCallAgen  = leadsData.filter(l=>(l.status||'novo')==='call_agendada').length;
+  const pCallFeita = leadsData.filter(l=>(l.status||'novo')==='call_feita').length;
+  const pFechado   = leadsData.filter(l=>(l.status||'novo')==='fechado').length;
+  const pPerdido   = leadsData.filter(l=>(l.status||'novo')==='perdido').length;
+  const txDenom    = pFechado + pPerdido;
+  const txFech     = txDenom > 0 ? Math.round(pFechado / txDenom * 100) : 0;
+  document.getElementById('p-callagem').textContent  = pCallAgen.toLocaleString('pt-BR');
+  document.getElementById('p-callfeita').textContent = pCallFeita.toLocaleString('pt-BR');
+  document.getElementById('p-fechado').textContent   = pFechado.toLocaleString('pt-BR');
+  document.getElementById('p-perdido').textContent   = pPerdido.toLocaleString('pt-BR');
+  document.getElementById('p-txfech').textContent    = txFech + '%';
 
   // ── Funil visual horizontal (6 etapas-chave) ───────────────────────────
   const KEY_STEPS = ['intro','quiz_start','formulario','form_enviado','resultado','cta_clicado','agendamento'];
@@ -654,7 +750,7 @@ function renderPipeline() {
       </div>
       ${cards.length===0 ? '<div class="k-empty">Nenhum lead</div>' : ''}
       ${cards.map(l=>`
-        <div class="k-card" onclick="openDrawer('${l.id}')">
+        <div class="k-card" onclick="openDrawer('${l.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')openDrawer('${l.id}')" aria-label="Abrir detalhes de ${l.nome||'lead'}">
           <div class="k-card-name">${l.nome||'(sem nome)'}</div>
           <div class="k-card-phone">${l.telefone||'—'}</div>
           <div class="k-card-foot">
