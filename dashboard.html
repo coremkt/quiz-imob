@@ -249,6 +249,7 @@
   <div class="header-right">
     <div class="date-filter" id="date-filter">
       <button class="df-btn active" onclick="setDateFilter(0)"   data-days="0"   >Tudo</button>
+      <button class="df-btn"        onclick="setDateFilter(-1)"  data-days="-1"  >Hoje</button>
       <button class="df-btn"        onclick="setDateFilter(7)"   data-days="7"   >7d</button>
       <button class="df-btn"        onclick="setDateFilter(30)"  data-days="30"  >30d</button>
       <button class="df-btn"        onclick="setDateFilter(90)"  data-days="90"  >90d</button>
@@ -495,6 +496,12 @@ let dateFilter   = 0; // 0 = todos; N = últimos N dias
 
 function applyDateFilter(rows, field) {
   if (!dateFilter) return rows;
+  if (dateFilter === -1) {
+    const midnight = new Date();
+    midnight.setHours(0, 0, 0, 0);
+    const cutoffStr = midnight.toISOString();
+    return rows.filter(r => r[field] && r[field] >= cutoffStr);
+  }
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - dateFilter);
   const cutoffStr = cutoff.toISOString();
