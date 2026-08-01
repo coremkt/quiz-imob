@@ -22,33 +22,32 @@ Deno.serve(async (req) => {
   }
 
   const cfToken = body.cf_token as string | undefined;
-
-  // Verify Cloudflare Turnstile token server-side
   const cfSecret = Deno.env.get('CF_TURNSTILE_SECRET');
-  if (!cfSecret) {
-    return new Response('Server misconfigured', { status: 500, headers: CORS });
-  }
 
-  const formData = new FormData();
-  formData.append('secret', cfSecret);
-  formData.append('response', cfToken ?? '');
-  formData.append('remoteip', req.headers.get('x-forwarded-for') ?? '');
+  // Só verifica com Cloudflare se o token foi enviado
+  // Sem token = Turnstile não carregou (rede lenta/VPN) → confia no C3 do cliente
+  // Token presente mas inválido = tentativa de bypass → bloqueia silenciosamente
+  if (cfToken && cfSecret) {
+    const formData = new FormData();
+    formData.append('secret', cfSecret);
+    formData.append('response', cfToken);
+    formData.append('remoteip', req.headers.get('x-forwarded-for') ?? '');
 
-  const cfRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'POST',
-    body: formData,
-  });
-  const cfJson = await cfRes.json() as { success: boolean };
-
-  if (!cfJson.success) {
-    // Bot detectado — retorna 200 para não vazar informação
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { ...CORS, 'Content-Type': 'application/json' },
+    const cfRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      body: formData,
     });
+    const cfJson = await cfRes.json() as { success: boolean };
+
+    if (!cfJson.success) {
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
+    }
   }
 
-  // Token válido — insere o lead
+  // Sem token OU token válido — insere o lead
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
