@@ -700,8 +700,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (document.getElementById('hp-site').value) { runProc(); return; }
     // C3 — tempo mínimo 45s desde carregamento: menos = bot → simula sucesso sem salvar
     if (Date.now() - QUIZ_LOAD_TS < 45000) { runProc(); return; }
-    // C4 — Cloudflare Turnstile: sem token aprovado = bot → simula sucesso sem salvar
-    if (!cfToken) { runProc(); return; }
+    // C4 — Cloudflare Turnstile: sem token = aguarda até 5s (conexão lenta), depois bloqueia
+    if (!cfToken) {
+      if (typeof turnstile === 'undefined') {
+        // Script do Turnstile não carregou (VPN, rede corporativa) — degrada para C3 apenas
+      } else {
+        // Turnstile carregou mas ainda está verificando — aguarda token
+        const btn = document.querySelector('#s-data .cta');
+        const orig = btn.textContent;
+        btn.textContent = 'Verificando segurança...';
+        btn.disabled = true;
+        let tries = 0;
+        const poll = setInterval(function() {
+          tries++;
+          if (cfToken) {
+            clearInterval(poll);
+            btn.textContent = orig; btn.disabled = false;
+            submitData();
+          } else if (tries >= 10) {
+            clearInterval(poll);
+            btn.textContent = orig; btn.disabled = false;
+            runProc(); // 5s sem token = bot
+          }
+        }, 500);
+        return;
+      }
+    }
 
     const name  = document.getElementById('in-name').value.trim();
     const phone = document.getElementById('in-phone').value.trim();
