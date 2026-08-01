@@ -545,6 +545,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const QUIZ_ID = 'quiz-imob';
   const SID          = Math.random().toString(36).slice(2,10) + Date.now().toString(36);
   const QUIZ_LOAD_TS = Date.now();
+  let FORM_SHOWN_TS  = 0;
   const _usp = new URLSearchParams(window.location.search);
   const UTM  = {
     utm_source:   _usp.get('utm_source')   || null,
@@ -680,7 +681,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     sendEvent('q'+(qi+1), Q_STEPS[qi]);
     if (qi === 2) { sendEvent('factoide1',5); show('s-f1'); return; }
     if (qi === 7) { sendEvent('factoide2',11); show('s-f2'); return; }
-    if (qi === 8) { sendEvent('formulario',13); show('s-data'); initTurnstile(); return; }
+    if (qi === 8) { sendEvent('formulario',13); show('s-data'); initTurnstile(); FORM_SHOWN_TS = Date.now(); return; }
     renderQ(qi+1);
   }
 
@@ -698,8 +699,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   function submitData() {
     // C3 — honeypot: campo invisível preenchido = bot → simula sucesso sem salvar
     if (document.getElementById('hp-site').value) { runProc(); return; }
-    // C3 — tempo mínimo 45s desde carregamento: menos = bot → simula sucesso sem salvar
-    if (Date.now() - QUIZ_LOAD_TS < 45000) { runProc(); return; }
+    // C3 — tempo mínimo 8s desde que o form apareceu: menos = bot → simula sucesso sem salvar
+    if (FORM_SHOWN_TS && Date.now() - FORM_SHOWN_TS < 8000) { runProc(); return; }
     const name  = document.getElementById('in-name').value.trim();
     const phone = document.getElementById('in-phone').value.trim();
     const err   = document.getElementById('data-err');
