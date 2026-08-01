@@ -545,6 +545,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const QUIZ_ID = 'quiz-imob';
   const SID          = Math.random().toString(36).slice(2,10) + Date.now().toString(36);
   const QUIZ_LOAD_TS = Date.now();
+  const _usp = new URLSearchParams(window.location.search);
+  const UTM  = {
+    utm_source:   _usp.get('utm_source')   || null,
+    utm_medium:   _usp.get('utm_medium')   || null,
+    utm_campaign: _usp.get('utm_campaign') || null,
+    utm_content:  _usp.get('utm_content')  || null,
+    utm_term:     _usp.get('utm_term')     || null,
+    fbclid:       _usp.get('fbclid')       || null,
+  };
   const CF_SITEKEY   = '0x4AAAAAAEDH0t8D83UAieXm';
   let cfToken = null;
 
@@ -578,6 +587,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       body: JSON.stringify({
         cf_token: cfToken,
         quiz_id: QUIZ_ID, session_id: SID,
+        ...UTM,
         nome: ans.name||'', telefone: ans.phone||'', email: ans.email||'',
         balde: ans.balde||'', balde_label: BALDE_LABELS[ans.balde]||'',
         q1: ans.q1!==undefined?ans.q1:null,

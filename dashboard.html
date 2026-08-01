@@ -414,6 +414,11 @@
     </div>
 
     <div class="drawer-section">
+      <div class="drawer-section-title">Origem</div>
+      <div id="dr-utm"></div>
+    </div>
+
+    <div class="drawer-section">
       <div class="drawer-section-title">Respostas do Quiz</div>
       <div id="dr-quiz"></div>
     </div>
@@ -844,6 +849,17 @@ function openDrawer(id) {
   document.getElementById('dr-status').value = l.status || 'novo';
   document.getElementById('dr-valor').value  = l.valor  || '';
   document.getElementById('dr-notas').value  = l.notas  || '';
+
+  const utmRows = [
+    ['Fonte',    l.utm_source],
+    ['Meio',     l.utm_medium],
+    ['Campanha', l.utm_campaign],
+    ['Anúncio',  l.utm_content],
+    ['fbclid',   l.fbclid],
+  ].filter(([,v])=>v);
+  document.getElementById('dr-utm').innerHTML = utmRows.length
+    ? utmRows.map(([k,v])=>`<div class="quiz-answer"><div class="quiz-q">${k}</div><div class="quiz-a" style="word-break:break-all;">${v}</div></div>`).join('')
+    : '<div style="font-size:13px;color:var(--text-3);">Sem dados de origem (lead orgânico)</div>';
 
   const qOpts = [l.q1,l.q2,l.q3,l.q4,l.q5,l.q6,l.q7,l.q8,l.q9];
   document.getElementById('dr-quiz').innerHTML = Q_LABELS.map((label,i)=>{
