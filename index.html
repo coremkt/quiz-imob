@@ -584,7 +584,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     // Rotas pelo Edge Function — nenhum dado PII vai direto ao Supabase do browser
     fetch(SB_URL + '/functions/v1/submit-lead', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SB_KEY },
       body: JSON.stringify({
         cf_token: cfToken,
         quiz_id: QUIZ_ID, session_id: SID,
