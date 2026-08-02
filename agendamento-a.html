@@ -680,8 +680,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <script>
     window.addEventListener('message', function(e) {
       if (e.data.event && e.data.event === 'calendly.event_scheduled') {
+        var p = e.data.payload || {};
+        var utms = (function() {
+          var s = new URLSearchParams(location.search);
+          return {
+            utm_source:   s.get('utm_source')   || '',
+            utm_medium:   s.get('utm_medium')   || '',
+            utm_campaign: s.get('utm_campaign') || '',
+            utm_content:  s.get('utm_content')  || '',
+            utm_term:     s.get('utm_term')     || '',
+            fbclid:       s.get('fbclid')       || ''
+          };
+        })();
+
+        // GTM — dispara tag configurada no GTM
         window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({ 'event': 'agendamento_realizado' });
+        window.dataLayer.push(Object.assign({ event: 'agendamento_realizado' }, utms));
+
+        // FB Pixel — dispara diretamente se carregado via GTM
+        if (typeof fbq !== 'undefined') {
+          fbq('track', 'Schedule', { utm_campaign: utms.utm_campaign });
+        }
+
+        // Calendly webhook server-side cuidará do CRM via Edge Function
+        // (invitee.created → busca lead por email → status = call_agendada)
       }
     });
   </script>
