@@ -711,6 +711,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const balde = calcBalde(); ans.balde = balde;
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({ 'event': 'lead' });
+    if (typeof fbq !== 'undefined') fbq('track', 'Lead');
     sendEvent('form_enviado',14);
     sendLead();
     runProc();
